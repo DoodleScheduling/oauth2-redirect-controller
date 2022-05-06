@@ -1,0 +1,19 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: oauth2proxies-viewer-role
+rules:
+- apiGroups:
+  - oauth2.infra.doodle.com
+  resources:
+  - oauth2proxies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - oauth2.infra.doodle.com
+  resources:
+  - oauth2proxies/status
+  verbs:
+  - get

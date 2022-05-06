@@ -1,0 +1,10 @@
+apiVersion: oauth2.infra.doodle.com/v1beta1
+kind: OAUTH2Proxy
+metadata:
+  name: keycloak
+spec:
+  backend:
+    serviceName: keycloak
+    servicePort: http
+  host: iam-http-proxy
+  proxyHost: proxy

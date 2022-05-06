@@ -1,0 +1,12 @@
+apiVersion: v2
+appVersion: 0.0.0
+description: Clone http request to multiple backend services
+home: https://github.com/DoodleScheduling/k8soauth2-controller
+keywords:
+- kubernetes-controller
+- http-proxy
+- request-clone
+name: k8soauth2-controller
+sources:
+- https://github.com/DoodleScheduling/k8soauth2-controller
+version: 0.0.0
