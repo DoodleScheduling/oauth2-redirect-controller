@@ -78,8 +78,8 @@ func (h *HttpProxy) RegisterOrUpdate(dst *OAUTH2Proxy) error {
 }
 
 type state struct {
-	Host      string `json:"host,omitempty"`
-	OrigState string `json:"origState,omitempty"`
+	OrigState       string `json:"origState,omitempty"`
+	OrigRedirectURI string `json:"origRedirectURI,omitempty"`
 }
 
 func (h *HttpProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -87,13 +87,13 @@ func (h *HttpProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var found bool
 
 	for _, dst := range h.dst {
-		redirectURI, err := url.Parse(dst.RedirectURI)
+		u, err := url.Parse(dst.RedirectURI)
 		if err != nil {
 			continue
 		}
 
-		//request targets redirectURI, attempt to restore original state
-		if redirectURI.Host == r.Host {
+		//request targets redirectURI, attempt to parse state and redirect to original URL
+		if u.Host == r.Host {
 			vals := r.URL.Query()
 			str := vals.Get("state")
 			state := &state{}
@@ -105,19 +105,18 @@ func (h *HttpProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			/*u, err := url.Parse(state.OrigRedirectURI)
+			u, err := url.Parse(state.OrigRedirectURI)
 			if err != nil {
 				h.log.Info("could not decode original redirect uri", "request", r.RequestURI, "host", dst.Host, "origRedirectURI", state.OrigRedirectURI, "err", err)
 				continue
-			}*/
+			}
 
-			r.URL.Host = state.Host
-			r.Host = state.Host
-
+			r.URL.Path = u.Path
+			r.URL.Host = u.Host
 			vals.Set("state", state.OrigState)
 			r.URL.RawQuery = vals.Encode()
 
-			h.log.Info("recovered original state and modified path", "url", r.URL.String(), "host", dst.Host, "path", redirectURI.Path, "state", state.OrigState)
+			h.log.Info("recovered original state and modified path", "url", r.URL.String(), "host", dst.Host, "path", u.Path, "state", state.OrigState)
 
 			w.Header().Set("Location", r.URL.String())
 			w.WriteHeader(http.StatusSeeOther)
@@ -129,22 +128,10 @@ func (h *HttpProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			h.log.Info("found matching http backend for request", "request", r.RequestURI, "host", dst.Host, "service", dst.Service, "port", dst.Port)
 			found = true
 
-			/*	c := &http.Client{
-					CheckRedirect: func(req *http.Request, via []*http.Request) error {
-						return http.ErrUseLastResponse
-					},
-					Transport: &http.Transport{
-						DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-							return (&net.Dialer{}).DialContext(ctx, "tcp", fmt.Sprintf("%s:%d", dst.Service, dst.Port))
-						},
-					},
-				}
-			*/
 			clone := r.Clone(context.TODO())
 			clone.URL.Scheme = "http"
 			clone.URL.Host = fmt.Sprintf("%s:%d", dst.Service, dst.Port)
 			clone.RequestURI = ""
-			//clone.Host = u.Host
 
 			res, err := h.client.Do(clone)
 			if err != nil {
@@ -163,17 +150,15 @@ func (h *HttpProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				vals := u.Query()
 				if vals.Get("state") != "" && vals.Get("redirect_uri") != "" {
 					st := state{
-						OrigState: vals.Get("state"),
-						Host:      r.Host,
+						OrigState:       vals.Get("state"),
+						OrigRedirectURI: vals.Get("redirect_uri"),
 					}
 					b, _ := json.Marshal(st)
 
 					vals.Set("state", string(b))
+					vals.Set("redirect_uri", dst.RedirectURI)
 					u.RawQuery = vals.Encode()
 
-					res.Header["Location"] = []string{u.String()}
-				} else if u.Host == redirectURI.Host {
-					u.Host = dst.Host
 					res.Header["Location"] = []string{u.String()}
 				}
 			}
