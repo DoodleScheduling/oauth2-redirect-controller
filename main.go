@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"net/http"
 	"os"
@@ -25,6 +26,12 @@ import (
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/sdk/trace"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -137,9 +144,39 @@ func main() {
 		},
 	})
 
+	resources, err := resource.New(context.Background(),
+		resource.WithFromEnv(), // pull attributes from OTEL_RESOURCE_ATTRIBUTES and OTEL_SERVICE_NAME environment variables
+		resource.WithProcess(), // This option configures a set of Detectors that discover process information
+	)
+	if err != nil {
+		setupLog.Error(err, "failed creating OTLP resources")
+		os.Exit(1)
+	}
+
+	client := otlptracehttp.NewClient()
+	exporter, err := otlptrace.New(context.Background(), client)
+	if err != nil {
+		setupLog.Error(err, "failed creating OTLP trace exporter")
+		os.Exit(1)
+	}
+
+	tp := trace.NewTracerProvider(
+		trace.WithBatcher(exporter),
+		trace.WithResource(resources),
+	)
+
+	defer func() {
+		if err := tp.Shutdown(context.Background()); err != nil {
+			setupLog.Error(err, "")
+		}
+	}()
+
+	otel.SetTracerProvider(tp)
+	wrappedHandler := otelhttp.NewHandler(proxy, "oauth2-proxy")
+
 	s := &http.Server{
 		Addr:           httpAddr,
-		Handler:        proxy,
+		Handler:        wrappedHandler,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
@@ -147,14 +184,14 @@ func main() {
 
 	go s.ListenAndServe()
 
-	vbReconciler := &controllers.OAUTH2ProxyReconciler{
+	pReconciler := &controllers.OAUTH2ProxyReconciler{
 		Client:    mgr.GetClient(),
 		Log:       ctrl.Log.WithName("controllers").WithName("OAUTH2Proxy"),
 		Scheme:    mgr.GetScheme(),
 		Recorder:  mgr.GetEventRecorderFor("OAUTH2Proxy"),
 		HttpProxy: proxy,
 	}
-	if err = vbReconciler.SetupWithManager(mgr, controllers.OAUTH2ProxyReconcilerOptions{MaxConcurrentReconciles: viper.GetInt("concurrent")}); err != nil {
+	if err = pReconciler.SetupWithManager(mgr, controllers.OAUTH2ProxyReconcilerOptions{MaxConcurrentReconciles: viper.GetInt("concurrent")}); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OAUTH2Proxy")
 		os.Exit(1)
 	}

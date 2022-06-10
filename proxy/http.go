@@ -142,6 +142,9 @@ func (h *HttpProxy) recoverIncomingState(w http.ResponseWriter, r *http.Request,
 	return nil
 }
 
+// proxy request to target
+// if the request matches a path and the response contains a location header, the proxy
+// attempts to change the redirect_url in the location uri to the configured proxy target
 func (h *HttpProxy) changeRedirectURI(w http.ResponseWriter, r *http.Request, dst *OAUTH2Proxy) error {
 	h.log.Info("found matching http backend for request", "request", r.RequestURI, "host", dst.Host, "service", dst.Service, "port", dst.Port)
 
@@ -197,7 +200,9 @@ func (h *HttpProxy) changeRedirectURI(w http.ResponseWriter, r *http.Request, ds
 	}
 
 	for k, v := range res.Header {
-		w.Header().Set(k, v[0])
+		for _, h := range v {
+			w.Header().Add(k, h)
+		}
 	}
 
 	w.WriteHeader(res.StatusCode)

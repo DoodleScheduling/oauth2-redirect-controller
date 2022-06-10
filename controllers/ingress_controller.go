@@ -25,7 +25,6 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	"github.com/prometheus/common/log"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -131,7 +130,7 @@ func (r *OAUTH2ProxyReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	// Update status after reconciliation.
 	if err = r.patchStatus(ctx, &ph); err != nil {
-		log.Error(err, "unable to update status after reconciliation")
+		logger.Error(err, "unable to update status after reconciliation")
 		return ctrl.Result{Requeue: true}, err
 	}
 
