@@ -100,7 +100,7 @@ func main() {
 		Port:                    9443,
 		LeaderElection:          viper.GetBool("enable-leader-election"),
 		LeaderElectionNamespace: viper.GetString("leader-election-namespace"),
-		LeaderElectionID:        "1d722b55.doodle.com",
+		LeaderElectionID:        "k8soauth2-proxy-controller",
 	}
 
 	ns := strings.Split(viper.GetString("namespaces"), ",")
@@ -131,12 +131,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	proxyOpts := proxy.HttpProxyOptions{}
 	proxy := proxy.New(setupLog, &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
-	}, proxyOpts)
+	})
 
 	s := &http.Server{
 		Addr:           httpAddr,

@@ -60,6 +60,10 @@ spec:
                 type: object
               host:
                 type: string
+              paths:
+                items:
+                  type: string
+                type: array
               redirectURI:
                 type: string
               whitelistPath:

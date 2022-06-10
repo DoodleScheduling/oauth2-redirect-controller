@@ -26,6 +26,9 @@ type OAUTH2ProxySpec struct {
 	// +required
 	Host string `json:"host"`
 
+	// +optional
+	Paths []string `json:"paths"`
+
 	// +required
 	RedirectURI string `json:"redirectURI"`
 
