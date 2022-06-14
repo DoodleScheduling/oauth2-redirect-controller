@@ -1,0 +1,21 @@
+apiVersion: v1
+entries:
+  k8soauth2-proxy-controller:
+  - apiVersion: v2
+    appVersion: 0.0.0
+    created: "2022-06-14T12:53:54.945807778Z"
+    description: Clone http request to multiple backend services
+    digest: 96f0690e2dcda505cff94250ab275eff8db57b2e33242cec749555bb328fc9cc
+    home: https://github.com/DoodleScheduling/k8soauth2-proxy-controller
+    keywords:
+    - kubernetes-controller
+    - http-proxy
+    - oauth2
+    - oauth2-proxy
+    name: k8soauth2-proxy-controller
+    sources:
+    - https://github.com/DoodleScheduling/k8soauth2-proxy-controller
+    urls:
+    - https://github.com/DoodleScheduling/k8soauth-proxy-controller/releases/download/k8soauth2-proxy-controller-0.0.1/k8soauth2-proxy-controller-0.0.1.tgz
+    version: 0.0.1
+generated: "2022-06-14T12:53:54.945812778Z"
