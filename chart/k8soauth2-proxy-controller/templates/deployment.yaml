@@ -97,6 +97,10 @@ spec:
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName }}
       {{- end }}
+      {{- if .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml .Values.topologySpreadConstraints | nindent 8 }}
+      {{- end }}
       terminationGracePeriodSeconds: 30
       tolerations:
         {{- toYaml .Values.tolerations | nindent 8 }}
