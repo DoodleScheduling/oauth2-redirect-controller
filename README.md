@@ -4,7 +4,7 @@ OAUTH2 Proxy server with kubernetes support.
 The proxy is used as MitM between your idp and an external idp. The proxy dynamically replaces the redirect_uri.
 This is useful if you have multiple environemnts and one or more external idp like google.
 On the external idp only the oauth2 proxy needs to be configured as redirect_uri.
-The proxy makes sure to route the oauth2 callbacks correctly back to your original idp.$
+The proxy makes sure to route the oauth2 callbacks correctly back to your original idp.
 
 ## Why?
 OIDC IdP like google don't provide an API to dynamically configure or change OAUTH2 credentials. Meaning there
