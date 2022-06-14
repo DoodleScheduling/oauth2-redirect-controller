@@ -1,5 +1,7 @@
 affinity: {}
 
+topologySpreadConstraints: []
+
 annotations: {}
 
 extraArgs:
