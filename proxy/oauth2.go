@@ -98,62 +98,21 @@ func (h *HttpProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		//request targets redirectURI, attempt to parse state and redirect to original URL
-		if u.Host == r.Host {
-			h.recoverIncomingState(w, r, dst)
-			return
-		}
-
 		//request targets service, check if response has a redirect uri and state and attempt to change it to the proxy redirectURI
 		if dst.Host == r.Host {
 			h.changeRedirectURI(w, r, dst)
+			return
+		}
+
+		//request targets redirectURI, attempt to parse state and redirect to original URL
+		if u.Host == r.Host {
+			h.recoverIncomingState(w, r, dst)
 			return
 		}
 	}
 
 	// We don't have any matching OAUTH2Proxy resources matching the host
 	w.WriteHeader(http.StatusServiceUnavailable)
-}
-
-// recoverIncomingState attempts to parse the incoming state (if there is any) and redirect the request back to the original redirect_uri
-func (h *HttpProxy) recoverIncomingState(w http.ResponseWriter, r *http.Request, dst *OAUTH2Proxy) error {
-	vals := r.URL.Query()
-	str := vals.Get("state")
-	state := &state{}
-
-	h.log.Info("request matches redirectURL, attempt to recover state", "host", r.Host, "state", str)
-
-	err := json.Unmarshal([]byte(str), state)
-	if err != nil {
-		h.log.Info("contains undecodable state", "request", r.RequestURI, "host", dst.Host, "err", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return err
-	}
-
-	u, err := url.Parse(state.OrigRedirectURI)
-	if err != nil {
-		h.log.Info("could not decode original redirect uri", "request", r.RequestURI, "host", dst.Host, "origRedirectURI", state.OrigRedirectURI, "err", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return err
-	}
-
-	r.URL.Path = u.Path
-	r.URL.Host = u.Host
-
-	if state.OrigState != "" {
-		vals.Set("state", state.OrigState)
-	} else {
-		vals.Del("state")
-	}
-
-	r.URL.RawQuery = vals.Encode()
-
-	h.log.Info("recovered original state and modified path", "url", r.URL.String(), "host", dst.Host, "path", u.Path, "state", state.OrigState)
-
-	w.Header().Set("Location", r.URL.String())
-	w.WriteHeader(http.StatusSeeOther)
-
-	return nil
 }
 
 // proxy request to target
@@ -236,4 +195,45 @@ func matchPath(p string, list []string) bool {
 	}
 
 	return false
+}
+
+// recoverIncomingState attempts to parse the incoming state (if there is any) and redirect the request back to the original redirect_uri
+func (h *HttpProxy) recoverIncomingState(w http.ResponseWriter, r *http.Request, dst *OAUTH2Proxy) error {
+	vals := r.URL.Query()
+	str := vals.Get("state")
+	state := &state{}
+
+	h.log.Info("request matches redirectURL, attempt to recover state", "host", r.Host, "state", str)
+
+	err := json.Unmarshal([]byte(str), state)
+	if err != nil {
+		h.log.Info("contains undecodable state", "request", r.RequestURI, "host", dst.Host, "err", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return err
+	}
+
+	u, err := url.Parse(state.OrigRedirectURI)
+	if err != nil {
+		h.log.Info("could not decode original redirect uri", "request", r.RequestURI, "host", dst.Host, "origRedirectURI", state.OrigRedirectURI, "err", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return err
+	}
+
+	r.URL.Path = u.Path
+	r.URL.Host = u.Host
+
+	if state.OrigState != "" {
+		vals.Set("state", state.OrigState)
+	} else {
+		vals.Del("state")
+	}
+
+	r.URL.RawQuery = vals.Encode()
+
+	h.log.Info("recovered original state and modified path", "url", r.URL.String(), "host", dst.Host, "path", u.Path, "state", state.OrigState)
+
+	w.Header().Set("Location", r.URL.String())
+	w.WriteHeader(http.StatusSeeOther)
+
+	return nil
 }
