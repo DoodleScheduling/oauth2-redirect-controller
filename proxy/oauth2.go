@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/go-logr/logr"
@@ -29,8 +30,8 @@ type HttpProxy struct {
 // OAUTH2Proxy defines the serivce which is proxied
 type OAUTH2Proxy struct {
 	Host        string
-	RedirectURI string
 	Service     string
+	RedirectURI string
 	Paths       []string
 	Port        int32
 	Object      client.ObjectKey
@@ -69,15 +70,18 @@ func (h *HttpProxy) RegisterOrUpdate(dst *OAUTH2Proxy) error {
 
 	for _, v := range h.dst {
 		if v.Object == dst.Object {
+			h.log.Info("update http backend", "host", dst.Host, "service", dst.Service, "port", dst.Port)
 			v.Host = dst.Host
 			v.Port = dst.Port
 			v.Service = dst.Service
+			v.RedirectURI = dst.RedirectURI
+			v.Paths = dst.Paths
 
 			return nil
 		}
 	}
 
-	h.log.Info("register new http backend", "host", dst.Host, "service", dst.Service, "port", dst.Port)
+	h.log.Info("register http backend", "host", dst.Host, "service", dst.Service, "port", dst.Port)
 	h.dst = append(h.dst, dst)
 
 	return nil
@@ -89,7 +93,9 @@ func (h *HttpProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, dst := range h.dst {
 		u, err := url.Parse(dst.RedirectURI)
 		if err != nil {
-			continue
+			h.log.Info("could not parse proxy redirectURI", "request", r.RequestURI, "host", dst.Host, "err", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		//request targets redirectURI, attempt to parse state and redirect to original URL
@@ -120,18 +126,26 @@ func (h *HttpProxy) recoverIncomingState(w http.ResponseWriter, r *http.Request,
 	err := json.Unmarshal([]byte(str), state)
 	if err != nil {
 		h.log.Info("contains undecodable state", "request", r.RequestURI, "host", dst.Host, "err", err)
+		w.WriteHeader(http.StatusBadRequest)
 		return err
 	}
 
 	u, err := url.Parse(state.OrigRedirectURI)
 	if err != nil {
 		h.log.Info("could not decode original redirect uri", "request", r.RequestURI, "host", dst.Host, "origRedirectURI", state.OrigRedirectURI, "err", err)
+		w.WriteHeader(http.StatusBadRequest)
 		return err
 	}
 
 	r.URL.Path = u.Path
 	r.URL.Host = u.Host
-	vals.Set("state", state.OrigState)
+
+	if state.OrigState != "" {
+		vals.Set("state", state.OrigState)
+	} else {
+		vals.Del("state")
+	}
+
 	r.URL.RawQuery = vals.Encode()
 
 	h.log.Info("recovered original state and modified path", "url", r.URL.String(), "host", dst.Host, "path", u.Path, "state", state.OrigState)
@@ -158,20 +172,21 @@ func (h *HttpProxy) changeRedirectURI(w http.ResponseWriter, r *http.Request, ds
 
 	if err != nil {
 		h.log.Info("forwarding request to svc backend failed", "err", err, "request", r.RequestURI, "host", dst.Host, "service", dst.Service, "port", dst.Port)
+		w.WriteHeader(http.StatusBadRequest)
 		return err
-	} else {
-		h.log.Info("forwarding request to svc backend finished", "status", res.StatusCode, "host", dst.Host, "service", dst.Service, "port", dst.Port)
 	}
 
-	if location, ok := res.Header["Location"]; ok && strInList(r.URL.Path, dst.Paths) {
+	h.log.Info("forwarding request to svc backend finished", "status", res.StatusCode, "host", dst.Host, "service", dst.Service, "port", dst.Port)
+
+	if location, ok := res.Header["Location"]; ok && matchPath(r.URL.Path, dst.Paths) {
 		u, err := url.Parse(location[0])
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusBadRequest)
 			return err
 		}
 
 		vals := u.Query()
-		if vals.Get("state") != "" && vals.Get("redirect_uri") != "" {
+		if vals.Get("redirect_uri") != "" {
 			st := state{
 				OrigState:       vals.Get("state"),
 				OrigRedirectURI: vals.Get("redirect_uri"),
@@ -180,7 +195,7 @@ func (h *HttpProxy) changeRedirectURI(w http.ResponseWriter, r *http.Request, ds
 
 			origRedirectUri, err := url.Parse(vals.Get("redirect_uri"))
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
+				w.WriteHeader(http.StatusBadRequest)
 				return err
 			}
 
@@ -213,9 +228,9 @@ func (h *HttpProxy) changeRedirectURI(w http.ResponseWriter, r *http.Request, ds
 	return nil
 }
 
-func strInList(str string, list []string) bool {
+func matchPath(p string, list []string) bool {
 	for _, v := range list {
-		if v == str {
+		if strings.HasPrefix(p, v) {
 			return true
 		}
 	}

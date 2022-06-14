@@ -27,9 +27,10 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/contrib/propagators/b3"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	corev1 "k8s.io/api/core/v1"
@@ -61,19 +62,23 @@ func init() {
 }
 
 var (
+	proxyReadTimeout        = "30s"
+	proxyWriteTimeout       = "30s"
 	httpAddr                = ":8080"
 	metricsAddr             = ":9556"
 	probesAddr              = ":9557"
 	enableLeaderElection    = false
 	leaderElectionNamespace string
 	namespaces              = ""
-	concurrent              = 4
+	concurrent              = 2
 )
 
 func main() {
 	flag.StringVar(&metricsAddr, "metrics-addr", ":9556", "The address of the metric endpoint binds to.")
 	flag.StringVar(&probesAddr, "probe-addr", ":9557", "The address of the probe endpoints bind to.")
 	flag.StringVar(&httpAddr, "http-addr", ":8080", "The address of http server binding to.")
+	flag.StringVar(&proxyReadTimeout, "proxy-read-timeout", "10s", "Read timeout for proxy requests.")
+	flag.StringVar(&proxyWriteTimeout, "proxy-write-timeout", "10s", "Write timeout for proxy requests.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -81,12 +86,12 @@ func main() {
 		"Specify a different leader election namespace. It will use the one where the controller is deployed by default.")
 	flag.StringVar(&namespaces, "namespaces", "",
 		"The controller listens by default for all namespaces. This may be limited to a comma delimted list of dedicated namespaces.")
-	flag.IntVar(&concurrent, "concurrent", 4,
-		"The number of concurrent reconcile workers. By default this is 4.")
+	flag.IntVar(&concurrent, "concurrent", 2,
+		"The number of concurrent reconcile workers. By default this is 2.")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
-	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
+	ctrl.SetLogger(zap.New())
 
 	// Import flags into viper and bind them to env vars
 	// flags are converted to upper-case, - is replaced with _
@@ -104,7 +109,6 @@ func main() {
 		Scheme:                  scheme,
 		MetricsBindAddress:      viper.GetString("metrics-addr"),
 		HealthProbeBindAddress:  viper.GetString("probe-addr"),
-		Port:                    9443,
 		LeaderElection:          viper.GetBool("enable-leader-election"),
 		LeaderElectionNamespace: viper.GetString("leader-election-namespace"),
 		LeaderElectionID:        "k8soauth2-proxy-controller",
@@ -138,12 +142,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	proxy := proxy.New(setupLog, &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	})
-
 	resources, err := resource.New(context.Background(),
 		resource.WithFromEnv(), // pull attributes from OTEL_RESOURCE_ATTRIBUTES and OTEL_SERVICE_NAME environment variables
 		resource.WithProcess(), // This option configures a set of Detectors that discover process information
@@ -153,7 +151,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	client := otlptracehttp.NewClient()
+	client := otlptracegrpc.NewClient()
 	exporter, err := otlptrace.New(context.Background(), client)
 	if err != nil {
 		setupLog.Error(err, "failed creating OTLP trace exporter")
@@ -165,21 +163,38 @@ func main() {
 		trace.WithResource(resources),
 	)
 
+	otel.SetTextMapPropagator(b3.New())
 	defer func() {
 		if err := tp.Shutdown(context.Background()); err != nil {
-			setupLog.Error(err, "")
+			setupLog.Error(err, "failed to shutdown trace provider")
 		}
 	}()
 
 	otel.SetTracerProvider(tp)
+	proxy := proxy.New(setupLog, &http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	})
+
 	wrappedHandler := otelhttp.NewHandler(proxy, "oauth2-proxy")
 
+	readTimeout, err := time.ParseDuration(viper.GetString("proxy-read-timeout"))
+	if err != nil {
+		setupLog.Error(err, "failed to parse proxy read timeout")
+	}
+
+	writeTimeout, err := time.ParseDuration(viper.GetString("proxy-write-timeout"))
+	if err != nil {
+		setupLog.Error(err, "failed to parse proxy write timeout")
+	}
+
 	s := &http.Server{
-		Addr:           httpAddr,
-		Handler:        wrappedHandler,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
+		Addr:         httpAddr,
+		Handler:      wrappedHandler,
+		ReadTimeout:  readTimeout,
+		WriteTimeout: writeTimeout,
 	}
 
 	go s.ListenAndServe()

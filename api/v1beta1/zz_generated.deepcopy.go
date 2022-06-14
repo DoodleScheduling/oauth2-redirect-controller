@@ -93,11 +93,6 @@ func (in *OAUTH2ProxySpec) DeepCopyInto(out *OAUTH2ProxySpec) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
-	if in.WhitelistPaths != nil {
-		in, out := &in.WhitelistPaths, &out.WhitelistPaths
-		*out = make([]string, len(*in))
-		copy(*out, *in)
-	}
 	out.Backend = in.Backend
 }
 

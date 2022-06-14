@@ -107,7 +107,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image ghcr.io/doodlescheduling/k8sprom-patch-controller=${IMG}
+	cd config/manager && $(KUSTOMIZE) edit set image ghcr.io/doodlescheduling/k8soauth2-proxy-controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 .PHONY: undeploy
@@ -118,7 +118,7 @@ CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 .PHONY: controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
 	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.8.0)
-	cp config/crd/bases/* chart/k8sprom-patch-controller/crds/
+	cp config/crd/bases/* chart/k8soauth2-proxy-controller/crds/
 
 KUSTOMIZE = $(shell pwd)/bin/kustomize
 .PHONY: kustomize

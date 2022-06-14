@@ -1,9 +1,19 @@
-# k8soauth2-controller
+# k8soauth2-proxy-controller
 
-A cloud native http proxy with the ability to clone incoming requests to multiple backend
-services.
+OAUTH2 Proxy server with kubernetes support.
+The proxy is used as MitM between your idp and an external idp. The proxy dynamically replaces the redirect_uri.
+This is useful if you have multiple environemnts and one or more external idp like google.
+On the external idp only the oauth2 proxy needs to be configured as redirect_uri.
+The proxy makes sure to route the oauth2 callbacks correctly back to your original idp.$
 
-![graph](https://github.com/DoodleScheduling/k8soauth2-controller/blob/master/docs/graph.jpg?raw=true)
+## Why?
+OIDC IdP like google don't provide an API to dynamically configure or change OAUTH2 credentials. Meaning there
+is no good way of progamatically add/remove redirect_uri or create ad hock credentials.
+With the oauth2 proxy its possible to only have the proxy URL configured as redirect_uri.
+
+The proxy transfers any OAUTH2 state from the original request as well as the redirect_uri in the [state param](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.1).
+While the external IdP redirects back to the oauth2 proxy after a successful authorization the oauth2 proxy unpacks the state and transforms the request back to its original.
+
 
 ## Example OAUTH2Proxy
 
@@ -14,18 +24,26 @@ The http proxy will route and clone incoming http requests to all OAUTH2Proxy ba
 apiVersion: oauth2.infra.doodle.com/v1beta1
 kind: OAUTH2Proxy
 metadata:
-  name: svc-billing-chargebee-webhook
-  namespace: default
+  name: idp
 spec:
-  host: chargebee-webhook.kubernetes.doodle-test.com
+  host: my-idp
+  paths:
+  - /
+  redirectURI: https://oauth-proxy
   backend:
-    serviceName: svc-billing
+    serviceName: backend-idp
     servicePort: http
 ```
 
+## Setup
+
+The proxy should not be exposed directly to the public. Rather should traffic be routed via an ingress controller
+and only paths which are used to redirect to the external idp should be routed via the oauth2 proxy.
+
+
 ## Helm chart
 
-Please see [chart/k8soauth2-controller](https://github.com/DoodleScheduling/k8soauth2-controller) for the helm chart docs.
+Please see [chart/k8soauth2-proxy-controller](https://github.com/DoodleScheduling/k8soauth2-proxy-controller) for the helm chart docs.
 
 ## Configure the controller
 
@@ -37,7 +55,12 @@ Available env variables:
 | `METRICS_ADDR` | The address of the metric endpoint binds to. | `:9556` |
 | `PROBE_ADDR` | The address of the probe endpoints binds to. | `:9557` |
 | `HTTP_ADDR` | The address of the http proxy. | `:8080` |
+| `PROXY_READ_TIMEOUT` | Read timeout to the proxy backend. | `30s` |
+| `PROXY_WRITE_TIMEOUT` | Write timeout to the proxy backend. | `30s` |
 | `ENABLE_LEADER_ELECTION` | Enable leader election for controller manager. | `false` |
 | `LEADER_ELECTION_NAMESPACE` | Change the leader election namespace. This is by default the same where the controller is deployed. | `` |
 | `NAMESPACES` | The controller listens by default for all namespaces. This may be limited to a comma delimted list of dedicated namespaces. | `` |
-| `CONCURRENT` | The number of concurrent reconcile workers.  | `4` |
+| `CONCURRENT` | The number of concurrent reconcile workers.  | `2` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | The gRPC opentelemtry-collector endpoint uri | `` |
+
+**Note:** The proxy implements opentelemetry tracing, see [further possible env](https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/) variables to configure it.

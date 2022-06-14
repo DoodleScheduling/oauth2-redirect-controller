@@ -15,6 +15,7 @@ limitations under the License.
 */
 
 // +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups=oauth2.infra.doodle.com,resources=oauth2proxies,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=oauth2.infra.doodle.com,resources=oauth2proxies/status,verbs=get;update;patch
 
@@ -99,7 +100,7 @@ func (r *OAUTH2ProxyReconciler) requestsForServiceChange(o client.Object) []reco
 
 	var reqs []reconcile.Request
 	for _, i := range list.Items {
-		r.Log.Info("referenced service from a requestclone changed detected, reconcile requestclone", "namespace", i.GetNamespace(), "name", i.GetName())
+		r.Log.Info("referenced service from a oauth2proxy changed detected, reconcile oauth2proxy", "namespace", i.GetNamespace(), "name", i.GetName())
 		reqs = append(reqs, reconcile.Request{NamespacedName: objectKey(&i)})
 	}
 
@@ -166,9 +167,9 @@ func (r *OAUTH2ProxyReconciler) reconcile(ctx context.Context, ph v1beta1.OAUTH2
 
 	r.HttpProxy.RegisterOrUpdate(&proxy.OAUTH2Proxy{
 		Host:        ph.Spec.Host,
-		RedirectURI: ph.Spec.RedirectURI,
 		Service:     svc.Spec.ClusterIP,
 		Paths:       ph.Spec.Paths,
+		RedirectURI: ph.Spec.RedirectURI,
 		Port:        port,
 		Object: client.ObjectKey{
 			Namespace: ph.GetNamespace(),

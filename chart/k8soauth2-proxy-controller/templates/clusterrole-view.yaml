@@ -1,0 +1,29 @@
+{{- if .Values.clusterRBAC.enabled -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ template "k8soauth2-proxy-controller.fullname" . }}-view
+  labels:
+    app.kubernetes.io/name: {{ include "k8soauth2-proxy-controller.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "k8soauth2-proxy-controller.chart" . }}
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+rules:
+- apiGroups:
+  - "oauth2.infra.doodle.com"
+  resources:
+  - oauth2proxies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - "oauth2.infra.doodle.com"
+  resources:
+  - oauth2proxies/status
+  verbs:
+  - get
+{{- end }}

@@ -60,38 +60,23 @@ jobs:
             echo 'run make test and commit changes'
             exit 1
           fi
-      - name: Deploy certmanager
-        run: |
-          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.yaml
       - name: Build container image
         run: |
-          make docker-build IMG=test/k8s-pause:latest BUILD_PLATFORMS=linux/amd64 \
+          make docker-build IMG=test/k8soauth2-proxy-controller:latest BUILD_PLATFORMS=linux/amd64 \
             BUILD_ARGS="--cache-from=type=local,src=/tmp/.buildx-cache \
             --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max"
       - name: Load test image
-        run: kind load docker-image test/k8s-pause:latest
+        run: kind load docker-image test/k8soauth2-proxy-controller:latest
       - name: Deploy controller
-        run: make deploy IMG=test/k8s-pause:latest
-      - name: Setup podinfo
-        env:
-          PODINFO_VER: ${{ '6.0.3' }}
-        run: |
-          kubectl create ns podinfo
-          helm repo add podinfo https://stefanprodan.github.io/podinfo
-          helm upgrade --install --wait backend podinfo/podinfo \
-          --version $PODINFO_VER \
-          --namespace podinfo \
-          --set replicaCount=2
-      - name: Run k8s-pause tests
-        run: bash ./scripts/e2e-test.sh
+        run: make deploy IMG=test/k8soauth2-proxy-controller:latest
       - name: Logs
         run: |
-          kubectl -n k8s-pause-system logs deploy/k8s-pause-controller-manager manager
+          kubectl -n k8soauth2-proxy-system logs deploy/k8soauth2-proxy-controller-controller-manager manager
       - name: Debug failure
         if: failure()
         run: |
           kubectl -n kube-system describe pods
           kubectl -n podinfo get pods
-          kubectl -n k8s-pause-system describe pods
-          kubectl -n k8s-pause-system get all
-          kubectl -n k8s-pause-system logs deploy/k8s-pause-controller-manager manager
+          kubectl -n k8soauth2-proxy-system describe pods
+          kubectl -n k8soauth2-proxy-system get all
+          kubectl -n k8soauth2-proxy-system logs deploy/k8soauth2-proxy-controller-controller-manager manager

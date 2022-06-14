@@ -1,9 +1,0 @@
-apiVersion: oauth2.infra.doodle.com/v1beta1
-kind: TCPIngressMapping
-metadata:
-  name: mongodb
-  namespace: default
-spec:
-  backendService:
-    name: mongodb-primary
-    port: mongodb

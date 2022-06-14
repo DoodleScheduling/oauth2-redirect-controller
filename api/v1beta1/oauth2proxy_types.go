@@ -32,9 +32,6 @@ type OAUTH2ProxySpec struct {
 	// +required
 	RedirectURI string `json:"redirectURI"`
 
-	// +optional
-	WhitelistPaths []string `json:"whitelistPath,omitempty"`
-
 	// +required
 	Backend ServiceSelector `json:"backend"`
 }
