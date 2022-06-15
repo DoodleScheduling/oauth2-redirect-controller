@@ -2,12 +2,12 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
-  name: {{ include "k8svault-controller.fullname" . }}
+  name: {{ include "k8soauth2-proxy-controller.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "k8svault-controller.name" . }}
+    app.kubernetes.io/name: {{ include "k8soauth2-proxy-controller.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    helm.sh/chart: {{ include "k8svault-controller.chart" . }}
+    helm.sh/chart: {{ include "k8soauth2-proxy-controller.chart" . }}
     {{- range $key, $value := .Values.podMonitor.additionalLabels }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
@@ -31,7 +31,7 @@ spec:
     - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "k8svault-controller.name" . }}
+      app.kubernetes.io/name: {{ include "k8soauth2-proxy-controller.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .Values.podMonitor.targetLabels }}
   targetLabels:
