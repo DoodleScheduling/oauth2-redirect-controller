@@ -1,5 +1,11 @@
 # k8soauth2-proxy-controller
 
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/5738/badge)](https://bestpractices.coreinfrastructure.org/projects/5738)
+[![e2e](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/workflows/e2e/badge.svg)](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/actions)
+[![report](https://goreportcard.com/badge/github.com/DoodleScheduling/k8soauth2-proxy-controller)](https://goreportcard.com/report/github.com/DoodleScheduling/k8soauth2-proxy-controller)
+[![license](https://img.shields.io/github/license/DoodleScheduling/k8soauth2-proxy-controller.svg)](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/blob/master/LICENSE)
+[![release](https://img.shields.io/github/release/DoodleScheduling/k8soauth2-proxy-controller/all.svg)](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/releases)
+
 OAUTH2 Proxy server with kubernetes support.
 The proxy is used as MitM between your idp and an external idp. The proxy dynamically replaces the redirect_uri.
 This is useful if you have multiple environemnts and one or more external idp like google.
@@ -40,10 +46,13 @@ spec:
 The proxy should not be exposed directly to the public. Rather should traffic be routed via an ingress controller
 and only paths which are used to redirect to the external idp should be routed via the oauth2 proxy.
 
-
-## Helm chart
+### Helm chart
 
 Please see [chart/k8soauth2-proxy-controller](https://github.com/DoodleScheduling/k8soauth2-proxy-controller) for the helm chart docs.
+
+### Manifests/kustomize
+
+Alternatively you may get the bundled manifests in each release to deploy it using kustomize or use them directly.
 
 ## Configure the controller
 

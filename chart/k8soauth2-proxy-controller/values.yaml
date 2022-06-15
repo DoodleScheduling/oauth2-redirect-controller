@@ -10,8 +10,8 @@ fullnameOverride: ""
 
 image:
   pullPolicy: IfNotPresent
-  repository: nexus.doodle.com:5000/devops/k8soauth2-proxy-controller
-  tag: 0.0.0
+  repository: ghcr.io/doodlescheduling/k8soauth2-proxy-controller
+  tag: 
 
 imagePullSecrets: []
 
@@ -113,9 +113,9 @@ clusterRBAC:
 podSecurityPolicy:
   enabled: true
 
-# Prometheus operator ServiceMonitor
-serviceMonitor:
-  enabled: true
+# Prometheus operator PodMonitor
+podMonitor:
+  enabled: false
   interval: 30s
   scrapeTimeout: 10s
   namespace:
@@ -123,7 +123,7 @@ serviceMonitor:
   targetLabels: []
   metricRelabelings: []
   sampleLimit: 0
-
+  
 prometheusRule:
   ## If true, a PrometheusRule CRD is created for a prometheus operator
   ## https://github.com/coreos/prometheus-operator
