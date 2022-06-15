@@ -3,6 +3,23 @@ entries:
   k8soauth2-proxy-controller:
   - apiVersion: v2
     appVersion: 0.1.0
+    created: "2022-06-15T12:19:06.329501256Z"
+    description: OAUTH2 proxy kubernetes controller
+    digest: c28c9c5da77a1ed962f8c9edc71893422a953631188b7a2f1cf0c2c75ff0f7bb
+    home: https://github.com/DoodleScheduling/k8soauth2-proxy-controller
+    keywords:
+    - kubernetes-controller
+    - http-proxy
+    - oauth2
+    - oauth2-proxy
+    name: k8soauth2-proxy-controller
+    sources:
+    - https://github.com/DoodleScheduling/k8soauth2-proxy-controller
+    urls:
+    - https://github.com/DoodleScheduling/k8soauth2-proxy-controller/releases/download/k8soauth2-proxy-controller-0.1.2/k8soauth2-proxy-controller-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
+    appVersion: 0.1.0
     created: "2022-06-15T12:02:48.387351178Z"
     description: OAUTH2 proxy kubernetes controller
     digest: c9c9be8889d71ab119f8c3192309d4e9798dd065bd866011d28945ea5bfa498a
@@ -52,4 +69,4 @@ entries:
     urls:
     - https://github.com/DoodleScheduling/k8soauth-proxy-controller/releases/download/k8soauth2-proxy-controller-0.0.1/k8soauth2-proxy-controller-0.0.1.tgz
     version: 0.0.1
-generated: "2022-06-15T12:02:48.387463278Z"
+generated: "2022-06-15T12:19:06.329517956Z"
