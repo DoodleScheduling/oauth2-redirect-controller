@@ -18,4 +18,7 @@ WORKDIR /
 COPY --from=builder /workspace/manager .
 USER nonroot:nonroot
 
+# User env is required by opentelemetry-go
+ENV USER=k8soauth2-proxy-controller
+
 ENTRYPOINT ["/manager"]
