@@ -1,5 +1,5 @@
 domain: doodle.com
-repo: github.com/DoodleScheduling/k8soauth2-controller
+repo: github.com/DoodleScheduling/k8soauth2-proxy-controller
 resources:
 - group: oauth2.infra.doodle.com
   kind: OAUTH2Proxy
