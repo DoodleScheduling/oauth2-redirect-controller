@@ -12,6 +12,8 @@ This is useful if you have multiple environemnts and one or more external idp li
 On the external idp only the oauth2 proxy needs to be configured as redirect_uri.
 The proxy makes sure to route the oauth2 callbacks correctly back to your original idp.
 
+💡 The proxy is not to be confused with a proxy which adds oidc authentication to your apps. It is rather a proxy do dynamically swap redirect_uri for external IdP in order to maintain a single redirect_uri there.
+
 ## Why?
 OIDC IdP like google don't provide an API to dynamically configure or change OAUTH2 credentials. Meaning there
 is no good way of progamatically add/remove redirect_uri or create ad hock credentials.
