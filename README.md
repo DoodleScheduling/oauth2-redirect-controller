@@ -1,4 +1,4 @@
-# k8soauth2-proxy-controller
+# k8soauth2-proxy-controller - Proxy for dynamically swapping OAUTH2 redirect URI
 
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/5738/badge)](https://bestpractices.coreinfrastructure.org/projects/5738)
 [![e2e](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/workflows/e2e/badge.svg)](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/actions)
