@@ -1,7 +1,10 @@
 apiVersion: v2
 appVersion: v0.1.2
-description: OAUTH2 proxy kubernetes controller 
+description: OAUTH2 proxy kubernetes controller
 home: https://github.com/DoodleScheduling/k8soauth2-proxy-controller
+maintainers:
+- name: devops
+  email: devops@doodle.com
 keywords:
 - kubernetes-controller
 - http-proxy
