@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2
+
+**Release date:** 2022-07-07
+
+### Features
+* Support IdP which sends the redirect request via POST, transform request into GET with query strings
+
+
 ## 0.1.1
 
 **Release date:** 2022-06-15

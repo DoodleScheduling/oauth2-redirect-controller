@@ -106,7 +106,7 @@ func (h *HttpProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		//request targets redirectURI, attempt to parse state and redirect to original URL
 		if u.Host == r.Host {
-			h.recoverIncomingState(w, r, dst)
+			h.recoverIncomingState(w, r)
 			return
 		}
 	}
@@ -198,23 +198,38 @@ func matchPath(p string, list []string) bool {
 }
 
 // recoverIncomingState attempts to parse the incoming state (if there is any) and redirect the request back to the original redirect_uri
-func (h *HttpProxy) recoverIncomingState(w http.ResponseWriter, r *http.Request, dst *OAUTH2Proxy) error {
+func (h *HttpProxy) recoverIncomingState(w http.ResponseWriter, r *http.Request) error {
 	vals := r.URL.Query()
-	str := vals.Get("state")
+	var str string
+	var code string
+
+	if r.Method == "POST" {
+		err := r.ParseForm()
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return err
+		}
+
+		str = r.PostFormValue("state")
+		code = r.PostFormValue("code")
+	} else {
+		str = vals.Get("state")
+	}
+
 	state := &state{}
 
 	h.log.Info("request matches redirectURL, attempt to recover state", "host", r.Host, "state", str)
 
 	err := json.Unmarshal([]byte(str), state)
 	if err != nil {
-		h.log.Info("contains undecodable state", "request", r.RequestURI, "host", dst.Host, "err", err)
+		h.log.Info("contains undecodable state", "request", r.RequestURI, "err", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return err
 	}
 
 	u, err := url.Parse(state.OrigRedirectURI)
 	if err != nil {
-		h.log.Info("could not decode original redirect uri", "request", r.RequestURI, "host", dst.Host, "origRedirectURI", state.OrigRedirectURI, "err", err)
+		h.log.Info("could not decode original redirect uri", "request", r.RequestURI, "origRedirectURI", state.OrigRedirectURI, "err", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return err
 	}
@@ -228,9 +243,13 @@ func (h *HttpProxy) recoverIncomingState(w http.ResponseWriter, r *http.Request,
 		vals.Del("state")
 	}
 
+	if code != "" {
+		vals.Set("code", code)
+	}
+
 	r.URL.RawQuery = vals.Encode()
 
-	h.log.Info("recovered original state and modified path", "url", r.URL.String(), "host", dst.Host, "path", u.Path, "state", state.OrigState)
+	h.log.Info("recovered original state and modified path", "url", r.URL.String(), "path", u.Path, "state", state.OrigState)
 
 	w.Header().Set("Location", r.URL.String())
 	w.WriteHeader(http.StatusSeeOther)

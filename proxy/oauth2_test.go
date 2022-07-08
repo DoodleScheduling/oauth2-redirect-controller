@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -166,6 +167,44 @@ func TestRouteRecoverOriginRedirectURI(t *testing.T) {
 			expectHTTPCode: http.StatusSeeOther,
 			expectHeaders: http.Header{
 				"Location": []string{"https://my-original-uri?state=my-state"},
+			},
+		},
+		{
+			name: "POST redirect fails because no valid state is in post body",
+			request: func() *http.Request {
+				st := state{
+					OrigRedirectURI: "https://my-original-uri",
+					OrigState:       "my-state",
+				}
+
+				b, _ := json.Marshal(st)
+				r, _ := http.NewRequest("POST", fmt.Sprintf("https://oauth2proxy?state=%s", b), nil)
+				return r
+			},
+			expectHTTPCode: http.StatusBadRequest,
+		},
+		{
+			name: "POST redirect extracts origin state and redirets back to origin including the code and state taken from the post form body",
+			request: func() *http.Request {
+				st := state{
+					OrigRedirectURI: "https://my-original-uri",
+					OrigState:       "my-state",
+				}
+
+				b, _ := json.Marshal(st)
+				vals := url.Values{
+					"state": []string{string(b)},
+					"code":  []string{"foobar"},
+				}.Encode()
+
+				r, _ := http.NewRequest("POST", "https://oauth2proxy", io.NopCloser(strings.NewReader(vals)))
+				r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+				return r
+			},
+			expectHTTPCode: http.StatusSeeOther,
+			expectHeaders: http.Header{
+				"Location": []string{"https://my-original-uri?code=foobar&state=my-state"},
 			},
 		},
 	}
