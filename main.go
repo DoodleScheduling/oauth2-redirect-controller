@@ -197,7 +197,11 @@ func main() {
 		WriteTimeout: writeTimeout,
 	}
 
-	go s.ListenAndServe()
+	go func() {
+		if err := s.ListenAndServe(); err != nil {
+			setupLog.Error(err, "HTTP server error")
+		}
+	}()
 
 	pReconciler := &controllers.OAUTH2ProxyReconciler{
 		Client:    mgr.GetClient(),
