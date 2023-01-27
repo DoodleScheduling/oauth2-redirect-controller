@@ -43,7 +43,6 @@ metricsPort: "9556"
 probesPort: "9557"
 httpPort: "8080"
 
-
 # Change the metrics path
 metricsPath: /metrics
 
@@ -103,15 +102,19 @@ serviceAccount:
   # fullname template.
   name:
 
-# The controller needs full access to all secrets cluster wide.
-# Hower you might disable the cluster rule and manually add fine graded rules.
+# Cluster scoped RBAC
 clusterRBAC:
+  # The controller needs full access to PrometheusPatchRules and everything else required to manage its resources.
   enabled: true
+
+  # By default the controller is granted full admin permsission on your cluster!
+  # If you want to avoid this you may disable this flag and create individual bindings.
+  fullAdmin: true
 
 # Creates a PodSecurityPolicy and the role/rolebinding
 # allowing the serviceaccount to use it
 podSecurityPolicy:
-  enabled: true
+  enabled: false
 
 # Prometheus operator PodMonitor
 podMonitor:
@@ -123,6 +126,7 @@ podMonitor:
   targetLabels: []
   metricRelabelings: []
   sampleLimit: 0
+
 prometheusRule:
   ## If true, a PrometheusRule CRD is created for a prometheus operator
   ## https://github.com/coreos/prometheus-operator
@@ -132,5 +136,8 @@ prometheusRule:
   #  namespace: monitoring
   labels: {}
   rules: []
+
+kubeRBACProxy:
+  enabled: true
 
 tolerations: []
