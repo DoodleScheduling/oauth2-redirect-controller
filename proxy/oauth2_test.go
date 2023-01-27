@@ -216,7 +216,7 @@ func TestRouteRecoverOriginRedirectURI(t *testing.T) {
 			g.Expect(test.expectHTTPCode).To(Equal(w.Code))
 
 			for k, v := range test.expectHeaders {
-				g.Expect(v).To(Equal(test.request().Response.Header[k]))
+				g.Expect(v).To(Equal(w.Result().Request.Header[k]))
 			}
 		})
 	}
@@ -386,7 +386,7 @@ func TestChangeRedirectURI(t *testing.T) {
 			g.Expect(test.expectHTTPCode).To(Equal(w.Code))
 
 			for k, v := range test.expectHeaders {
-				g.Expect(v).To(Equal(test.request().Response.Header[k]))
+				g.Expect(v).To(Equal(w.Result().Request.Header[k]))
 			}
 
 			if test.expectBody != "" {
