@@ -2,6 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 namespace: k8soauth2-proxy-system
 resources:
 - ../base/crd
-- ../base/rbac
+- ../rbac
 - ../base/manager
 - namespace.yaml
