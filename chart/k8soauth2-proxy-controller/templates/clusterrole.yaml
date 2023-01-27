@@ -15,8 +15,11 @@ rules:
   - ""
   resources:
     - services
+    - configmaps
   verbs:
     - get
+    - patch
+    - update
     - list
     - watch
 - apiGroups:

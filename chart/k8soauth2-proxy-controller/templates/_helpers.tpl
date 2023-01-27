@@ -63,4 +63,3 @@ Determine configmap name, can either be the self-created of an existing one
     {{ include "k8soauth2-proxy-controller.fullname" . }}
 {{- end -}}
 {{- end -}}
-
