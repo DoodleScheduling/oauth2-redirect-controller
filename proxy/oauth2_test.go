@@ -214,9 +214,10 @@ func TestRouteRecoverOriginRedirectURI(t *testing.T) {
 			w := httptest.NewRecorder()
 			proxy.ServeHTTP(w, test.request())
 			g.Expect(test.expectHTTPCode).To(Equal(w.Code))
+			r := w.Result()
 
 			for k, v := range test.expectHeaders {
-				g.Expect(v).To(Equal(w.HeaderMap[k]))
+				g.Expect(v).To(Equal(r.Header[k]))
 			}
 		})
 	}
@@ -384,9 +385,10 @@ func TestChangeRedirectURI(t *testing.T) {
 			w := httptest.NewRecorder()
 			proxy.ServeHTTP(w, test.request())
 			g.Expect(test.expectHTTPCode).To(Equal(w.Code))
+			r := w.Result()
 
 			for k, v := range test.expectHeaders {
-				g.Expect(v).To(Equal(w.HeaderMap[k]))
+				g.Expect(v).To(Equal(r.Header[k]))
 			}
 
 			if test.expectBody != "" {
