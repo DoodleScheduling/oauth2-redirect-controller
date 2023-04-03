@@ -100,13 +100,13 @@ func (h *HttpProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		//request targets service, check if response has a redirect uri and state and attempt to change it to the proxy redirectURI
 		if dst.Host == r.Host {
-			h.changeRedirectURI(w, r, dst)
+			_ = h.changeRedirectURI(w, r, dst)
 			return
 		}
 
 		//request targets redirectURI, attempt to parse state and redirect to original URL
 		if u.Host == r.Host {
-			h.recoverIncomingState(w, r)
+			_ = h.recoverIncomingState(w, r)
 			return
 		}
 	}
@@ -181,7 +181,7 @@ func (h *HttpProxy) changeRedirectURI(w http.ResponseWriter, r *http.Request, ds
 
 	w.WriteHeader(res.StatusCode)
 
-	io.Copy(w, res.Body)
+	_, _ = io.Copy(w, res.Body)
 	res.Body.Close()
 
 	return nil

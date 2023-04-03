@@ -165,7 +165,7 @@ func (r *OAUTH2ProxyReconciler) reconcile(ctx context.Context, ph v1beta1.OAUTH2
 		return v1beta1.OAUTH2ProxyNotReady(ph, v1beta1.ServicePortNotFoundReason, msg), ctrl.Result{}, nil
 	}
 
-	r.HttpProxy.RegisterOrUpdate(&proxy.OAUTH2Proxy{
+	_ = r.HttpProxy.RegisterOrUpdate(&proxy.OAUTH2Proxy{
 		Host:        ph.Spec.Host,
 		Service:     svc.Spec.ClusterIP,
 		Paths:       ph.Spec.Paths,

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -75,7 +74,7 @@ func TestRemoveBackend(t *testing.T) {
 			Namespace: "bar",
 		},
 	}
-	proxy.RegisterOrUpdate(&path)
+	_ = proxy.RegisterOrUpdate(&path)
 	err = proxy.Unregister(path.Object)
 	g.Expect(err).To(Not(HaveOccurred()))
 	g.Expect(0).To(Equal(len(proxy.dst)))
@@ -215,9 +214,10 @@ func TestRouteRecoverOriginRedirectURI(t *testing.T) {
 			w := httptest.NewRecorder()
 			proxy.ServeHTTP(w, test.request())
 			g.Expect(test.expectHTTPCode).To(Equal(w.Code))
+			r := w.Result()
 
 			for k, v := range test.expectHeaders {
-				g.Expect(v).To(Equal(w.HeaderMap[k]))
+				g.Expect(v).To(Equal(r.Header[k]))
 			}
 		})
 	}
@@ -380,18 +380,19 @@ func TestChangeRedirectURI(t *testing.T) {
 			})
 
 			p := test.path()
-			proxy.RegisterOrUpdate(&p)
+			_ = proxy.RegisterOrUpdate(&p)
 
 			w := httptest.NewRecorder()
 			proxy.ServeHTTP(w, test.request())
 			g.Expect(test.expectHTTPCode).To(Equal(w.Code))
+			r := w.Result()
 
 			for k, v := range test.expectHeaders {
-				g.Expect(v).To(Equal(w.HeaderMap[k]))
+				g.Expect(v).To(Equal(r.Header[k]))
 			}
 
 			if test.expectBody != "" {
-				body, _ := ioutil.ReadAll(w.Body)
+				body, _ := io.ReadAll(w.Body)
 				g.Expect(test.expectBody).To(Equal(string(body)))
 			}
 		})
