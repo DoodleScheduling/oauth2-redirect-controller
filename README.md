@@ -1,10 +1,10 @@
 # k8soauth2-proxy-controller - Proxy for dynamically swapping OAUTH2 redirect URI
 
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/5738/badge)](https://bestpractices.coreinfrastructure.org/projects/5738)
-[![e2e](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/workflows/e2e/badge.svg)](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/actions)
-[![report](https://goreportcard.com/badge/github.com/DoodleScheduling/k8soauth2-proxy-controller)](https://goreportcard.com/report/github.com/DoodleScheduling/k8soauth2-proxy-controller)
-[![license](https://img.shields.io/github/license/DoodleScheduling/k8soauth2-proxy-controller.svg)](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/blob/master/LICENSE)
 [![release](https://img.shields.io/github/release/DoodleScheduling/k8soauth2-proxy-controller/all.svg)](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/releases)
+[![release](https://github.com/doodlescheduling/k8soauth2-proxy-controller/actions/workflows/release.yaml/badge.svg)](https://github.com/doodlescheduling/k8soauth2-proxy-controller/actions/workflows/release.yaml)
+[![report](https://goreportcard.com/badge/github.com/DoodleScheduling/k8soauth2-proxy-controller)](https://goreportcard.com/report/github.com/DoodleScheduling/k8soauth2-proxy-controller)
+[![Coverage Status](https://coveralls.io/repos/github/DoodleScheduling/k8soauth2-proxy-controller/badge.svg?branch=master)](https://coveralls.io/github/DoodleScheduling/k8soauth2-proxy-controller?branch=master)
+[![license](https://img.shields.io/github/license/DoodleScheduling/k8soauth2-proxy-controller.svg)](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/blob/master/LICENSE)
 
 OAUTH2 Proxy server with kubernetes support.
 The proxy is used as MitM between your idp and an external idp. The proxy dynamically replaces the redirect_uri.

@@ -16,7 +16,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 #v3.5.0
         with:
-          go-version: 1.19.x
+          go-version: 1.20.x
       - name: Restore Go cache
         uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d #v3.2.2
         with:
@@ -54,18 +54,6 @@ jobs:
         uses: engineerd/setup-kind@aa272fe2a7309878ffc2a81c56cfe3ef108ae7d0 #v0.5.0
         with:
           version: v0.17.0
-      - name: Setup nginx ingress
-        env:
-          NGINX_INGRESS_VER: ${{ '4.0.13' }}
-        run: |
-          kubectl create ns ingress-nginx
-          kubectl -n ingress-nginx create cm tcp-services-configmap
-          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-          helm upgrade --wait -i ingress-nginx ingress-nginx/ingress-nginx \
-          --version $NGINX_INGRESS_VER \
-          --namespace ingress-nginx \
-          --set controller.extraArgs.tcp-services-configmap="\$(POD_NAMESPACE)/tcp-services-configmap" \
-          --set controller.service.type=ClusterIP
       - name: Load test image
         run: kind load docker-image test/k8soauth2-proxy-controller:latest
       - name: Deploy controller
