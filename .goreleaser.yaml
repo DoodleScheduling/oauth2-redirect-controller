@@ -48,7 +48,7 @@ dockers:
   - --label=org.opencontainers.image.revision={{ .FullCommit }}
   - --label=org.opencontainers.image.licenses=Apache-2.0
 - image_templates: 
-  - "ghcr.io/doodlescheduling/{{ .ProjectName }}:v{{ .Version }}-arm64v8"
+  - ghcr.io/doodlescheduling/{{ .ProjectName }}:v{{ .Version }}-arm64v8
   goarch: arm64
   dockerfile: Dockerfile.release
   use: buildx
