@@ -16,7 +16,7 @@ jobs:
         with:
           version: v3.4.0
 
-      - uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912 #v4.4.0
+      - uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
         with:
           python-version: 3.7
 
