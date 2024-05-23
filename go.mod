@@ -3,7 +3,7 @@ module github.com/DoodleScheduling/k8soauth2-controller
 go 1.20
 
 require (
-	github.com/go-logr/logr v1.2.3
+	github.com/go-logr/logr v1.4.2
 	github.com/onsi/gomega v1.26.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.15.0
