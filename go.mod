@@ -6,7 +6,7 @@ require (
 	github.com/go-logr/logr v1.2.3
 	github.com/onsi/gomega v1.26.0
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.15.0
+	github.com/spf13/viper v1.19.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.37.0
 	go.opentelemetry.io/contrib/propagators/b3 v1.12.0
 	go.opentelemetry.io/otel v1.11.2
