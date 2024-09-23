@@ -7,23 +7,12 @@ builds:
   - linux
   env:
   - CGO_ENABLED=0
-- id: proxy
-  binary: proxy
-  main: ./proxy
-  goos:
-  - linux
-  env:
-  - CGO_ENABLED=0
 
 archives:
 - id: manager
   name_template: "manager_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
   builds:
   - manager
-- id: proxy
-  name_template: "proxy_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-  builds:
-  - proxy
 
 checksum:
   name_template: 'checksums.txt'
@@ -75,39 +64,6 @@ dockers:
   - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
   - --label=org.opencontainers.image.revision={{ .FullCommit }}
   - --label=org.opencontainers.image.licenses=Apache-2.0
-- image_templates:
-  - ghcr.io/doodlescheduling/{{ .ProjectName }}/proxy:v{{ .Version }}-amd64
-  dockerfile: proxy/Dockerfile
-  use: buildx
-  ids:
-  - proxy
-  build_flag_templates:
-  - --platform=linux/amd64
-  - --label=org.opencontainers.image.title={{ .ProjectName }}
-  - --label=org.opencontainers.image.description={{ .ProjectName }}
-  - --label=org.opencontainers.image.url=https://github.com/doodlescheduling/{{ .ProjectName }}
-  - --label=org.opencontainers.image.source=https://github.com/doodlescheduling/{{ .ProjectName }}
-  - --label=org.opencontainers.image.version={{ .Version }}
-  - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
-  - --label=org.opencontainers.image.revision={{ .FullCommit }}
-  - --label=org.opencontainers.image.licenses=Apache-2.0
-- image_templates: 
-  - ghcr.io/doodlescheduling/{{ .ProjectName }}/proxy:v{{ .Version }}-arm64v8
-  goarch: arm64
-  dockerfile: proxy/Dockerfile
-  use: buildx
-  ids:
-  - proxy
-  build_flag_templates:
-  - --platform=linux/arm64/v8
-  - --label=org.opencontainers.image.title={{ .ProjectName }}
-  - --label=org.opencontainers.image.description={{ .ProjectName }}
-  - --label=org.opencontainers.image.url=https://github.com/doodlescheduling/{{ .ProjectName }}
-  - --label=org.opencontainers.image.source=https://github.com/doodlescheduling/{{ .ProjectName }}
-  - --label=org.opencontainers.image.version={{ .Version }}
-  - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
-  - --label=org.opencontainers.image.revision={{ .FullCommit }}
-  - --label=org.opencontainers.image.licenses=Apache-2.0
 
 docker_manifests:
 - name_template: ghcr.io/doodlescheduling/{{ .ProjectName }}:v{{ .Version }}
@@ -118,18 +74,6 @@ docker_manifests:
   image_templates:
   - ghcr.io/doodlescheduling/{{ .ProjectName }}:v{{ .Version }}-amd64
   - ghcr.io/doodlescheduling/{{ .ProjectName }}:v{{ .Version }}-arm64v8
-- name_template: ghcr.io/doodlescheduling/{{ .ProjectName }}/proxy:v{{ .Major }}
-  image_templates:
-  - ghcr.io/doodlescheduling/{{ .ProjectName }}/proxy:v{{ .Version }}-amd64
-  - ghcr.io/doodlescheduling/{{ .ProjectName }}/proxy:v{{ .Version }}-arm64v8
-- name_template: ghcr.io/doodlescheduling/{{ .ProjectName }}/proxy:v{{ .Version }}
-  image_templates:
-  - ghcr.io/doodlescheduling/{{ .ProjectName }}/proxy:v{{ .Version }}-amd64
-  - ghcr.io/doodlescheduling/{{ .ProjectName }}/proxy:v{{ .Version }}-arm64v8
-- name_template: ghcr.io/doodlescheduling/{{ .ProjectName }}/proxy:latest
-  image_templates:
-  - ghcr.io/doodlescheduling/{{ .ProjectName }}/proxy:v{{ .Version }}-amd64
-  - ghcr.io/doodlescheduling/{{ .ProjectName }}/proxy:v{{ .Version }}-arm64v8
 
 signs:
 - cmd: cosign
