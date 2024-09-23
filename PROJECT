@@ -1,8 +1,8 @@
 domain: doodle.com
 layout:
 - go.kubebuilder.io/v3
-projectName: k8soauth2-proxy-controller
-repo: github.com/doodlescheduling/k8soauth2-proxy-controller
+projectName: oauth2-redirect-controller
+repo: github.com/doodlescheduling/oauth2-redirect-controller
 resources:
 - api:
     crdVersion: v1
@@ -11,6 +11,6 @@ resources:
   domain: doodle.com
   group: oauth2.infra.doodle.com
   kind: OAUTH2Proxy
-  path: github.com/doodlescheduling/k8soauth2-proxy-controller/api/v1beta1
+  path: github.com/doodlescheduling/oauth2-redirect-controller/api/v1beta1
   version: v1beta1
 version: "3"
