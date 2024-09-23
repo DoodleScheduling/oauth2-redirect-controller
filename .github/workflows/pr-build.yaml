@@ -7,37 +7,110 @@ on:
       - synchronize
       - reopened
 
+permissions: {}
+
 jobs:
-  e2e:
+  lint-chart:
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+        with:
+          egress-policy: audit    
       - name: Checkout
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@5119fcb9089d432beecbf79bb2c7915207344b78 #v3.5
+        with:
+          version: v3.4.0
+
+      - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+        with:
+          python-version: 3.7
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@e6669bcd63d7cb57cb4380c33043eebe5d111992 # v2.6.1
+
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --target-branch=master --chart-dirs chart)
+          if [[ -n "$changed" ]]; then
+            echo "::set-output name=changed::true"
+          fi
+      - name: Run chart-testing (lint)
+        run: ct lint --target-branch=master --chart-dirs chart --check-version-increment=false
+
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+        with:
+          egress-policy: audit    
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
       - name: Setup Go
-        uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 #v3.5.0
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
         with:
-          go-version: 1.20.x
-      - name: Restore Go cache
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+          go-version: 1.22.x
       - name: fmt
         run: make fmt
       - name: vet
         run: make vet
       - name: lint
         run: make lint
-      - name: test
-        run: make test
+      - name: Check if working tree is dirty
+        run: |
+          if [[ $(git diff --stat) != '' ]]; then
+            git --no-pager diff
+            echo 'run <make test> and commit changes'
+            exit 1
+          fi
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        kubernetes-version:
+        - "1.27"
+        - "1.28"
+        - "1.29"
+        - "1.30"
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+        with:
+          egress-policy: audit    
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - name: Setup Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: 1.22.x
+      - name: run test
+        run: make test ENVTEST_K8S_VERSION=${{ matrix.kubernetes-version }}
+
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      profiles: ${{ steps.profiles.outputs.matrix }}    
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+        with:
+          egress-policy: audit    
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - name: Setup Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: 1.22.x
       - name: build
         run: make build
-      - name: Send go coverage report
-        uses: shogo82148/actions-goveralls@31ee804b8576ae49f6dc3caa22591bc5080e7920 #v1.6.0
-        with:
-          path-to-profile: coverage.out
       - name: Check if working tree is dirty
         run: |
           if [[ $(git diff --stat) != '' ]]; then
@@ -48,19 +121,108 @@ jobs:
       - name: Build container image
         run: |
           make docker-build
+      - name: Create image tarball
+        run: |
+          docker save --output keycloak-controller-container.tar keycloak-controller:latest
+      - name: Upload image
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: keycloak-controller-container
+          path: keycloak-controller-container.tar        
+      - id: profiles
+        name: Determine test profiles
+        run: |
+          profiles=$(ls config/tests/cases | jq -R -s -c 'split("\n")[:-1]')
+          echo $profiles
+          echo "::set-output name=matrix::$profiles"
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs:
+    - build
+    strategy:
+      matrix:
+        profile: ${{ fromJson(needs.build.outputs.profiles) }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+        with:
+          egress-policy: audit
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
       - name: Setup Kubernetes
         uses: engineerd/setup-kind@aa272fe2a7309878ffc2a81c56cfe3ef108ae7d0 #v0.5.0
         with:
           version: v0.17.0
-      - name: Load test image
-        run: kind load docker-image k8soauth2-proxy-controller:latest
-      - name: Deploy controller
-        run: make deploy
+      - name: Download keycloak-controller container
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: keycloak-controller-container
+          path: /tmp
+      - name: Load images
+        run: |
+          docker load --input /tmp/keycloak-controller-container.tar
+          docker image ls -a
+      - name: Setup Kustomize
+        uses: imranismail/setup-kustomize@2ba527d4d055ab63514ba50a99456fc35684947f # v2.1.0
+      - name: Run test
+        run: |
+          make kind-test TEST_PROFILE=${{ matrix.profile }}
       - name: Debug failure
         if: failure()
         run: |
           kubectl -n kube-system describe pods
-          kubectl -n podinfo get pods
-          kubectl -n k8soauth2-proxy-system describe pods
-          kubectl -n k8soauth2-proxy-system get all
-          kubectl -n k8soauth2-proxy-system logs deploy/k8soauth2-proxy-controller manager
+          kubectl -n oauth2-system describe pods
+          kubectl -n oauth2-system get all
+          kubectl -n oauth2-system logs deploy/keycloak-controller
+          kubectl -n oauth2-system get keycloakrealms -o yaml
+
+  test-chart: 
+    runs-on: ubuntu-latest
+    needs:
+    - build
+    - lint-chart
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+        with:
+          egress-policy: audit    
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@5119fcb9089d432beecbf79bb2c7915207344b78 #v3.5
+
+      - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+        with:
+          python-version: 3.7
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@e6669bcd63d7cb57cb4380c33043eebe5d111992 # v2.6.1
+
+      - name: Create kind cluster
+        uses: helm/kind-action@0025e74a8c7512023d06dc019c617aa3cf561fde # v1.10.0
+
+      - name: Download keycloak-controller container
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: keycloak-controller-container
+          path: /tmp
+
+      - name: Load image
+        run: |
+          docker load --input /tmp/keycloak-controller-container.tar
+          docker tag keycloak-controller:latest ghcr.io/doodlescheduling/keycloak-controller:v0.0.0
+          kind load docker-image ghcr.io/doodlescheduling/keycloak-controller:v0.0.0 --name chart-testing
+          docker image ls -a
+          
+      - name: Run chart-testing (install)
+        run: ct install --target-branch=master --chart-dirs chart
+
+  test-success:
+    runs-on: ubuntu-latest
+    needs: [test, e2e-tests]
+    steps:
+    - run: echo "all tests succeeded"
