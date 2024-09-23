@@ -73,7 +73,6 @@ var (
 	metricsAddr             string
 	healthAddr              string
 	concurrent              int
-	reconcilerRegistry      string
 	gracefulShutdownTimeout time.Duration
 	clientOptions           client.Options
 	kubeConfigOpts          client.KubeConfigOptions
