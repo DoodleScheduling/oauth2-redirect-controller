@@ -21,7 +21,7 @@ jobs:
     - name: Scan for vulnerabilities
       uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # 0.24.0
       with: 
-        image-ref: ghcr.io/doodlescheduling/keycloak-controller:latest
+        image-ref: ghcr.io/doodlescheduling/oauth2-redirect-controller:latest
         format: json
         scanners: vuln,secret
         ignore-unfixed: false

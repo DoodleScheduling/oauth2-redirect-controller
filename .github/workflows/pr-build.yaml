@@ -123,12 +123,12 @@ jobs:
           make docker-build
       - name: Create image tarball
         run: |
-          docker save --output keycloak-controller-container.tar keycloak-controller:latest
+          docker save --output oauth2-redirect-controller-container.tar oauth2-redirect-controller:latest
       - name: Upload image
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
-          name: keycloak-controller-container
-          path: keycloak-controller-container.tar        
+          name: oauth2-redirect-controller-container
+          path: oauth2-redirect-controller-container.tar        
       - id: profiles
         name: Determine test profiles
         run: |
@@ -154,14 +154,14 @@ jobs:
         uses: engineerd/setup-kind@aa272fe2a7309878ffc2a81c56cfe3ef108ae7d0 #v0.5.0
         with:
           version: v0.17.0
-      - name: Download keycloak-controller container
+      - name: Download oauth2-redirect-controller container
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
-          name: keycloak-controller-container
+          name: oauth2-redirect-controller-container
           path: /tmp
       - name: Load images
         run: |
-          docker load --input /tmp/keycloak-controller-container.tar
+          docker load --input /tmp/oauth2-redirect-controller-container.tar
           docker image ls -a
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@2ba527d4d055ab63514ba50a99456fc35684947f # v2.1.0
@@ -174,8 +174,8 @@ jobs:
           kubectl -n kube-system describe pods
           kubectl -n oauth2-system describe pods
           kubectl -n oauth2-system get all
-          kubectl -n oauth2-system logs deploy/keycloak-controller
-          kubectl -n oauth2-system get keycloakrealms -o yaml
+          kubectl -n oauth2-system logs deploy/oauth2-redirect-controller
+          kubectl -n oauth2-system get oauth2-redirectrealms -o yaml
 
   test-chart: 
     runs-on: ubuntu-latest
@@ -205,17 +205,17 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@0025e74a8c7512023d06dc019c617aa3cf561fde # v1.10.0
 
-      - name: Download keycloak-controller container
+      - name: Download oauth2-redirect-controller container
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
-          name: keycloak-controller-container
+          name: oauth2-redirect-controller-container
           path: /tmp
 
       - name: Load image
         run: |
-          docker load --input /tmp/keycloak-controller-container.tar
-          docker tag keycloak-controller:latest ghcr.io/doodlescheduling/keycloak-controller:v0.0.0
-          kind load docker-image ghcr.io/doodlescheduling/keycloak-controller:v0.0.0 --name chart-testing
+          docker load --input /tmp/oauth2-redirect-controller-container.tar
+          docker tag oauth2-redirect-controller:latest ghcr.io/doodlescheduling/oauth2-redirect-controller:v0.0.0
+          kind load docker-image ghcr.io/doodlescheduling/oauth2-redirect-controller:v0.0.0 --name chart-testing
           docker image ls -a
           
       - name: Run chart-testing (install)
