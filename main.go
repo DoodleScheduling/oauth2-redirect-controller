@@ -224,9 +224,9 @@ func main() {
 
 	realmReconciler := &controllers.OAUTH2ProxyReconciler{
 		Client:    mgr.GetClient(),
-		Log:       ctrl.Log.WithName("controllers").WithName("OAUTH2ProxyReconciler"),
+		Log:       ctrl.Log.WithName("controllers").WithName("OAUTH2Proxy"),
 		Scheme:    mgr.GetScheme(),
-		Recorder:  mgr.GetEventRecorderFor("OAUTH2ProxyReconciler"),
+		Recorder:  mgr.GetEventRecorderFor("OAUTH2Proxy"),
 		HttpProxy: proxy,
 	}
 
