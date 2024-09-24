@@ -25,13 +25,13 @@ import (
 
 	infrav1beta1 "github.com/DoodleScheduling/oauth2-redirect-controller/api/v1beta1"
 	"github.com/DoodleScheduling/oauth2-redirect-controller/internal/controllers"
+	"github.com/DoodleScheduling/oauth2-redirect-controller/internal/otelsetup"
 	"github.com/DoodleScheduling/oauth2-redirect-controller/internal/proxy"
 	"github.com/fluxcd/pkg/runtime/client"
 	helper "github.com/fluxcd/pkg/runtime/controller"
 	"github.com/fluxcd/pkg/runtime/leaderelection"
 	"github.com/fluxcd/pkg/runtime/logger"
 	flag "github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/contrib/propagators/b3"
 	"go.opentelemetry.io/otel"
@@ -80,6 +80,7 @@ var (
 	leaderElectionOptions   leaderelection.Options
 	rateLimiterOptions      helper.RateLimiterOptions
 	watchOptions            helper.WatchOptions
+	otelOptions             otelsetup.Options
 )
 
 func main() {
@@ -101,6 +102,7 @@ func main() {
 	rateLimiterOptions.BindFlags(flag.CommandLine)
 	kubeConfigOpts.BindFlags(flag.CommandLine)
 	watchOptions.BindFlags(flag.CommandLine)
+	otelOptions.BindFlags(flag.CommandLine)
 
 	flag.Parse()
 	logger.SetLogger(logger.NewLogger(logOptions))
@@ -199,21 +201,25 @@ func main() {
 
 	wrappedHandler := otelhttp.NewHandler(proxy, "oauth2-proxy")
 
-	readTimeout, err := time.ParseDuration(viper.GetString("proxy-read-timeout"))
-	if err != nil {
-		setupLog.Error(err, "failed to parse proxy read timeout")
-	}
+	if otelOptions.Endpoint != "" {
+		tp, err := otelsetup.Tracing(context.Background(), otelOptions)
+		defer func() {
+			if err := tp.Shutdown(context.Background()); err != nil {
+				setupLog.Error(err, "failed to shutdown trace provider")
+			}
+		}()
 
-	writeTimeout, err := time.ParseDuration(viper.GetString("proxy-write-timeout"))
-	if err != nil {
-		setupLog.Error(err, "failed to parse proxy write timeout")
+		if err != nil {
+			setupLog.Error(err, "failed to setup trace provider")
+		}
 	}
 
 	s := &http.Server{
-		Addr:         httpAddr,
-		Handler:      wrappedHandler,
-		ReadTimeout:  readTimeout,
-		WriteTimeout: writeTimeout,
+		Addr:           httpAddr,
+		Handler:        wrappedHandler,
+		ReadTimeout:    proxyReadTimeout,
+		WriteTimeout:   proxyWriteTimeout,
+		MaxHeaderBytes: 1 << 20,
 	}
 
 	go func() {
