@@ -1,4 +1,4 @@
-project_name: keycloak-controller
+project_name: oauth2-redirect-controller
 
 builds:
 - id: manager
