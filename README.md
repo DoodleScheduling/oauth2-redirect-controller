@@ -1,10 +1,11 @@
-# k8soauth2-proxy-controller - Proxy for dynamically swapping OAUTH2 redirect URI
+# oauth2-redirect-controller - Proxy for dynamically swapping OAUTH2 redirect URI
 
-[![release](https://img.shields.io/github/release/DoodleScheduling/k8soauth2-proxy-controller/all.svg)](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/releases)
-[![release](https://github.com/doodlescheduling/k8soauth2-proxy-controller/actions/workflows/release.yaml/badge.svg)](https://github.com/doodlescheduling/k8soauth2-proxy-controller/actions/workflows/release.yaml)
-[![report](https://goreportcard.com/badge/github.com/DoodleScheduling/k8soauth2-proxy-controller)](https://goreportcard.com/report/github.com/DoodleScheduling/k8soauth2-proxy-controller)
-[![Coverage Status](https://coveralls.io/repos/github/DoodleScheduling/k8soauth2-proxy-controller/badge.svg?branch=master)](https://coveralls.io/github/DoodleScheduling/k8soauth2-proxy-controller?branch=master)
-[![license](https://img.shields.io/github/license/DoodleScheduling/k8soauth2-proxy-controller.svg)](https://github.com/DoodleScheduling/k8soauth2-proxy-controller/blob/master/LICENSE)
+[![release](https://img.shields.io/github/release/DoodleScheduling/oauth2-redirect-controller/all.svg)](https://github.com/DoodleScheduling/oauth2-redirect-controller/releases)
+[![release](https://github.com/doodlescheduling/oauth2-redirect-controller/actions/workflows/release.yaml/badge.svg)](https://github.com/doodlescheduling/oauth2-redirect-controller/actions/workflows/release.yaml)
+[![report](https://goreportcard.com/badge/github.com/DoodleScheduling/oauth2-redirect-controller)](https://goreportcard.com/report/github.com/DoodleScheduling/oauth2-redirect-controller)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/DoodleScheduling/oauth2-redirect-controller/badge)](https://api.securityscorecards.dev/projects/github.com/DoodleScheduling/oauth2-redirect-controller)
+[![Coverage Status](https://coveralls.io/repos/github/DoodleScheduling/oauth2-redirect-controller/badge.svg?branch=master)](https://coveralls.io/github/DoodleScheduling/oauth2-redirect-controller?branch=master)
+[![license](https://img.shields.io/github/license/DoodleScheduling/oauth2-redirect-controller.svg)](https://github.com/DoodleScheduling/oauth2-redirect-controller/blob/master/LICENSE)
 
 OAUTH2 Proxy server with kubernetes support.
 The proxy is used as MitM between your idp and an external idp. The proxy dynamically replaces the redirect_uri.
@@ -50,28 +51,33 @@ and only paths which are used to redirect to the external idp should be routed v
 
 ### Helm chart
 
-Please see [chart/k8soauth2-proxy-controller](https://github.com/DoodleScheduling/k8soauth2-proxy-controller) for the helm chart docs.
+Please see [chart/oauth2-redirect-controller](https://github.com/DoodleScheduling/oauth2-redirect-controller) for the helm chart docs.
 
 ### Manifests/kustomize
 
 Alternatively you may get the bundled manifests in each release to deploy it using kustomize or use them directly.
 
-## Configure the controller
 
-You may change base settings for the controller using env variables (or alternatively command line arguments).
-Available env variables:
-
-| Name  | Description | Default |
-|-------|-------------| --------|
-| `METRICS_ADDR` | The address of the metric endpoint binds to. | `:9556` |
-| `PROBE_ADDR` | The address of the probe endpoints binds to. | `:9557` |
-| `HTTP_ADDR` | The address of the http proxy. | `:8080` |
-| `PROXY_READ_TIMEOUT` | Read timeout to the proxy backend. | `30s` |
-| `PROXY_WRITE_TIMEOUT` | Write timeout to the proxy backend. | `30s` |
-| `ENABLE_LEADER_ELECTION` | Enable leader election for controller manager. | `false` |
-| `LEADER_ELECTION_NAMESPACE` | Change the leader election namespace. This is by default the same where the controller is deployed. | `` |
-| `NAMESPACES` | The controller listens by default for all namespaces. This may be limited to a comma delimted list of dedicated namespaces. | `` |
-| `CONCURRENT` | The number of concurrent reconcile workers.  | `2` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | The gRPC opentelemtry-collector endpoint uri | `` |
-
-**Note:** The proxy implements opentelemetry tracing, see [further possible env](https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/) variables to configure it.
+## Configuration
+The controller can be configured using cmd args:
+```
+--concurrent int                            The number of concurrent reconciles. (default 4)
+--enable-leader-election                    Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.
+--graceful-shutdown-timeout duration        The duration given to the reconciler to finish before forcibly stopping. (default 10m0s)
+--health-addr string                        The address the health endpoint binds to. (default ":9557")
+--insecure-kubeconfig-exec                  Allow use of the user.exec section in kubeconfigs provided for remote apply.
+--insecure-kubeconfig-tls                   Allow that kubeconfigs provided for remote apply can disable TLS verification.
+--kube-api-burst int                        The maximum burst queries-per-second of requests sent to the Kubernetes API. (default 300)
+--kube-api-qps float32                      The maximum queries-per-second of requests sent to the Kubernetes API. (default 50)
+--leader-election-lease-duration duration   Interval at which non-leader candidates will wait to force acquire leadership (duration string). (default 35s)
+--leader-election-release-on-cancel         Defines if the leader should step down voluntarily on controller manager shutdown. (default true)
+--leader-election-renew-deadline duration   Duration that the leading controller manager will retry refreshing leadership before giving up (duration string). (default 30s)
+--leader-election-retry-period duration     Duration the LeaderElector clients should wait between tries of actions (duration string). (default 5s)
+--log-encoding string                       Log encoding format. Can be 'json' or 'console'. (default "json")
+--log-level string                          Log verbosity level. Can be one of 'trace', 'debug', 'info', 'error'. (default "info")
+--max-retry-delay duration                  The maximum amount of time for which an object being reconciled will have to wait before a retry. (default 15m0s)
+--metrics-addr string                       The address the metric endpoint binds to. (default ":9556")
+--min-retry-delay duration                  The minimum amount of time for which an object being reconciled will have to wait before a retry. (default 750ms)
+--watch-all-namespaces                      Watch for resources in all namespaces, if set to false it will only watch the runtime namespace. (default true)
+--watch-label-selector string               Watch for resources with matching labels e.g. 'sharding.fluxcd.io/shard=shard1'.
+```

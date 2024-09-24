@@ -10,7 +10,7 @@ fullnameOverride: ""
 
 image:
   pullPolicy: IfNotPresent
-  repository: ghcr.io/doodlescheduling/k8soauth2-proxy-controller
+  repository: ghcr.io/doodlescheduling/oauth2-redirect-controller
   tag:
 
 imagePullSecrets: []

@@ -36,10 +36,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	v1beta1 "github.com/DoodleScheduling/k8soauth2-controller/api/v1beta1"
-	"github.com/DoodleScheduling/k8soauth2-controller/proxy"
+	v1beta1 "github.com/DoodleScheduling/oauth2-redirect-controller/api/v1beta1"
+	"github.com/DoodleScheduling/oauth2-redirect-controller/internal/proxy"
 )
 
 const (
@@ -77,20 +76,19 @@ func (r *OAUTH2ProxyReconciler) SetupWithManager(mgr ctrl.Manager, opts OAUTH2Pr
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1beta1.OAUTH2Proxy{}).
 		Watches(
-			&source.Kind{Type: &v1.Service{}},
+			&v1.Service{},
 			handler.EnqueueRequestsFromMapFunc(r.requestsForServiceChange),
 		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: opts.MaxConcurrentReconciles}).
 		Complete(r)
 }
 
-func (r *OAUTH2ProxyReconciler) requestsForServiceChange(o client.Object) []reconcile.Request {
+func (r *OAUTH2ProxyReconciler) requestsForServiceChange(ctx context.Context, o client.Object) []reconcile.Request {
 	s, ok := o.(*v1.Service)
 	if !ok {
 		panic(fmt.Sprintf("expected a Service, got %T", o))
 	}
 
-	ctx := context.Background()
 	var list v1beta1.OAUTH2ProxyList
 	if err := r.List(ctx, &list, client.MatchingFields{
 		serviceIndex: objectKey(s).String(),
@@ -127,7 +125,7 @@ func (r *OAUTH2ProxyReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return reconcile.Result{}, err
 	}
 
-	ph, result, reconcileErr := r.reconcile(ctx, ph, logger)
+	ph, result, reconcileErr := r.reconcile(ctx, ph)
 
 	// Update status after reconciliation.
 	if err = r.patchStatus(ctx, &ph); err != nil {
@@ -138,7 +136,7 @@ func (r *OAUTH2ProxyReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	return result, reconcileErr
 }
 
-func (r *OAUTH2ProxyReconciler) reconcile(ctx context.Context, ph v1beta1.OAUTH2Proxy, logger logr.Logger) (v1beta1.OAUTH2Proxy, ctrl.Result, error) {
+func (r *OAUTH2ProxyReconciler) reconcile(ctx context.Context, ph v1beta1.OAUTH2Proxy) (v1beta1.OAUTH2Proxy, ctrl.Result, error) {
 	// Lookup matching service
 	svc := v1.Service{}
 	err := r.Client.Get(ctx, client.ObjectKey{

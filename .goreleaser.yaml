@@ -1,4 +1,4 @@
-project_name: k8soauth2-proxy-controller
+project_name: keycloak-controller
 
 builds:
 - id: manager
@@ -84,6 +84,7 @@ signs:
   - sign-blob
   - "--output-certificate=${certificate}"
   - "--output-signature=${signature}"
+  - --yes
   - "${artifact}"
   artifacts: checksum
   output: true
@@ -96,4 +97,5 @@ docker_signs:
     output: true
     args:
     - 'sign'
+    - --yes
     - '${artifact}'

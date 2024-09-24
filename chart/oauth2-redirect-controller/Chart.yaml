@@ -1,0 +1,16 @@
+apiVersion: v2
+appVersion: v0.0.0
+description: OAUTH2 proxy kubernetes controller
+home: https://github.com/DoodleScheduling/oauth2-redirect-controller
+maintainers:
+- name: devops
+  email: devops@doodle.com
+keywords:
+- kubernetes-controller
+- http-proxy
+- oauth2
+- oauth2-proxy
+name: oauth2-redirect-controller
+sources:
+- https://github.com/DoodleScheduling/oauth2-redirect-controller
+version: 0.0.0
