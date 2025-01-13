@@ -25,7 +25,7 @@ nameOverride: ""
 
 nodeSelector: {}
 
-# A list of secrets and their paths to mount inside the pod
+# A list of secrets and their paths to mount inside the pod 
 # This is useful for mounting certificates for security
 secretMounts: []
 #  - name: secret
