@@ -13,7 +13,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.34.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.34.0
 	go.opentelemetry.io/otel/sdk v1.34.0
-	google.golang.org/grpc v1.69.4
+	google.golang.org/grpc v1.70.0
 	k8s.io/api v0.31.3
 	k8s.io/apimachinery v0.31.4
 	k8s.io/client-go v0.31.3
