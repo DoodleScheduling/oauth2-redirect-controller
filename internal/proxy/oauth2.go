@@ -182,7 +182,7 @@ func (h *HttpProxy) changeRedirectURI(w http.ResponseWriter, r *http.Request, ds
 	w.WriteHeader(res.StatusCode)
 
 	_, _ = io.Copy(w, res.Body)
-  return res.Body.Close()
+	return res.Body.Close()
 }
 
 func matchPath(p string, list []string) bool {
