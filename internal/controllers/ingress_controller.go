@@ -113,7 +113,7 @@ func (r *OAUTH2ProxyReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// Fetch the OAUTH2Proxy instance
 	ph := v1beta1.OAUTH2Proxy{}
 
-	err := r.Client.Get(ctx, req.NamespacedName, &ph)
+	err := r.Get(ctx, req.NamespacedName, &ph)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -139,7 +139,7 @@ func (r *OAUTH2ProxyReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 func (r *OAUTH2ProxyReconciler) reconcile(ctx context.Context, ph v1beta1.OAUTH2Proxy) (v1beta1.OAUTH2Proxy, ctrl.Result, error) {
 	// Lookup matching service
 	svc := v1.Service{}
-	err := r.Client.Get(ctx, client.ObjectKey{
+	err := r.Get(ctx, client.ObjectKey{
 		Namespace: ph.GetNamespace(),
 		Name:      ph.Spec.Backend.ServiceName,
 	}, &svc)
@@ -183,11 +183,11 @@ func (r *OAUTH2ProxyReconciler) reconcile(ctx context.Context, ph v1beta1.OAUTH2
 func (r *OAUTH2ProxyReconciler) patchStatus(ctx context.Context, ph *v1beta1.OAUTH2Proxy) error {
 	key := client.ObjectKeyFromObject(ph)
 	latest := &v1beta1.OAUTH2Proxy{}
-	if err := r.Client.Get(ctx, key, latest); err != nil {
+	if err := r.Get(ctx, key, latest); err != nil {
 		return err
 	}
 
-	return r.Client.Status().Patch(ctx, ph, client.MergeFrom(latest))
+	return r.Status().Patch(ctx, ph, client.MergeFrom(latest))
 }
 
 // objectKey returns client.ObjectKey for the object.
