@@ -15,7 +15,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.36.0
 	google.golang.org/grpc v1.73.0
 	k8s.io/api v0.33.1
-	k8s.io/apimachinery v0.33.1
+	k8s.io/apimachinery v0.33.2
 	k8s.io/client-go v0.33.1
 	sigs.k8s.io/controller-runtime v0.21.0
 )
