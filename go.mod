@@ -3,7 +3,7 @@ module github.com/DoodleScheduling/oauth2-redirect-controller
 go 1.24.2
 
 require (
-	github.com/fluxcd/pkg/runtime v0.74.0
+	github.com/fluxcd/pkg/runtime v0.75.0
 	github.com/go-logr/logr v1.4.3
 	github.com/onsi/gomega v1.37.0
 	github.com/spf13/pflag v1.0.7
