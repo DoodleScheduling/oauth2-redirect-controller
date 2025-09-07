@@ -7,8 +7,8 @@ require (
 	github.com/go-logr/logr v1.4.3
 	github.com/onsi/gomega v1.38.2
 	github.com/spf13/pflag v1.0.10
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0
-	go.opentelemetry.io/contrib/propagators/b3 v1.37.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0
+	go.opentelemetry.io/contrib/propagators/b3 v1.38.0
 	go.opentelemetry.io/otel v1.38.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.38.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.38.0
