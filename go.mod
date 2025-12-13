@@ -14,9 +14,9 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.39.0
 	go.opentelemetry.io/otel/sdk v1.39.0
 	google.golang.org/grpc v1.77.0
-	k8s.io/api v0.34.2
+	k8s.io/api v0.34.3
 	k8s.io/apimachinery v0.34.3
-	k8s.io/client-go v0.34.2
+	k8s.io/client-go v0.34.3
 	sigs.k8s.io/controller-runtime v0.22.4
 )
 
