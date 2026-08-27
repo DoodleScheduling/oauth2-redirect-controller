@@ -83,7 +83,6 @@ func (h *HttpProxy) RegisterOrUpdate(dst *OAUTH2Proxy) {
 
 	h.log.Info("register http backend", "host", dst.Host, "service", dst.Service, "port", dst.Port)
 	h.dst = append(h.dst, dst)
-	return
 }
 
 func (h *HttpProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {

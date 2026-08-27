@@ -27,7 +27,6 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -82,7 +81,7 @@ func (r *OAUTH2ProxyReconciler) SetupWithManager(mgr ctrl.Manager, opts OAUTH2Pr
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1beta1.OAUTH2Proxy{}).
 		Watches(
-			&v1.Service{},
+			&corev1.Service{},
 			handler.EnqueueRequestsFromMapFunc(r.requestsForServiceChange),
 		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: opts.MaxConcurrentReconciles}).
@@ -90,7 +89,7 @@ func (r *OAUTH2ProxyReconciler) SetupWithManager(mgr ctrl.Manager, opts OAUTH2Pr
 }
 
 func (r *OAUTH2ProxyReconciler) requestsForServiceChange(ctx context.Context, o client.Object) []reconcile.Request {
-	s, ok := o.(*v1.Service)
+	s, ok := o.(*corev1.Service)
 	if !ok {
 		panic(fmt.Sprintf("expected a Service, got %T", o))
 	}
@@ -144,7 +143,7 @@ func (r *OAUTH2ProxyReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 func (r *OAUTH2ProxyReconciler) reconcile(ctx context.Context, ph v1beta1.OAUTH2Proxy) (v1beta1.OAUTH2Proxy, ctrl.Result, error) {
 	// Lookup matching service
-	svc := v1.Service{}
+	svc := corev1.Service{}
 	err := r.Get(ctx, client.ObjectKey{
 		Namespace: ph.GetNamespace(),
 		Name:      ph.Spec.Backend.ServiceName,
