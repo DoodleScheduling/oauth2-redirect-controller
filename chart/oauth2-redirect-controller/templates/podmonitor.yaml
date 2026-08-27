@@ -2,12 +2,12 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
-  name: {{ include "k8soauth2-proxy-controller.fullname" . }}
+  name: {{ include "oauth2-redirect-controller.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "k8soauth2-proxy-controller.name" . }}
+    app.kubernetes.io/name: {{ include "oauth2-redirect-controller.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    helm.sh/chart: {{ include "k8soauth2-proxy-controller.chart" . }}
+    helm.sh/chart: {{ include "oauth2-redirect-controller.chart" . }}
     {{- range $key, $value := .Values.podMonitor.additionalLabels }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
@@ -24,7 +24,7 @@ spec:
     scheme: https
     bearerTokenSecret:
       key: token
-      name: {{ template "k8soauth2-proxy-controller.serviceAccountName" . }}
+      name: {{ template "oauth2-redirect-controller.serviceAccountName" . }}
     tlsConfig:
       insecureSkipVerify: true
     {{- else }}
@@ -40,7 +40,7 @@ spec:
     - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "k8soauth2-proxy-controller.name" . }}
+      app.kubernetes.io/name: {{ include "oauth2-redirect-controller.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .Values.podMonitor.targetLabels }}
   targetLabels:

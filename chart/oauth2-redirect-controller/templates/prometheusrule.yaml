@@ -3,15 +3,15 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
 metadata:
-  name: {{ template "k8soauth2-proxy-controller.fullname" . }}
+  name: {{ template "oauth2-redirect-controller.fullname" . }}
 {{- if .Values.prometheusRule.namespace }}
   namespace: {{ .Values.prometheusRule.namespace }}
 {{- end }}
   labels:
-    app.kubernetes.io/name: {{ include "k8soauth2-proxy-controller.name" . }}
+    app.kubernetes.io/name: {{ include "oauth2-redirect-controller.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    helm.sh/chart: {{ include "k8soauth2-proxy-controller.chart" . }}
+    helm.sh/chart: {{ include "oauth2-redirect-controller.chart" . }}
 {{- if .Values.prometheusRule.labels }}
 {{- toYaml .Values.prometheusRule.labels | nindent 4 }}
 {{- end }}
@@ -20,7 +20,7 @@ metadata:
 spec:
 {{- with .Values.prometheusRule.rules }}
   groups:
-    - name: {{ template "k8soauth2-proxy-controller.name" $ }}
+    - name: {{ template "oauth2-redirect-controller.name" $ }}
       rules: {{ tpl (toYaml .) $ | nindent 8 }}
 {{- end }}
 {{- end }}

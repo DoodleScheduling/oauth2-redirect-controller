@@ -232,7 +232,7 @@ func main() {
 		Client:    mgr.GetClient(),
 		Log:       ctrl.Log.WithName("controllers").WithName("OAUTH2Proxy"),
 		Scheme:    mgr.GetScheme(),
-		Recorder:  mgr.GetEventRecorderFor("OAUTH2Proxy"),
+		Recorder:  mgr.GetEventRecorder("OAUTH2Proxy"),
 		HttpProxy: proxy,
 	}
 

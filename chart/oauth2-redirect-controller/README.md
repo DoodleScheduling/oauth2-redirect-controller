@@ -1,16 +1,16 @@
-# k8soauth2-proxy-controller helm chart
+# oauth2-redirect-controller helm chart
 
-Installs the [k8soauth2-proxy-controller](https://github.com/DoodleScheduling/k8soauth2-proxy-controller).
+Installs the [oauth2-redirect-controller](https://github.com/DoodleScheduling/oauth2-redirect-controller).
 
 ## Installing the Chart
 
-To install the chart with the release name `k8soauth2-proxy-controller`:
+To install the chart with the release name `oauth2-redirect-controller`:
 
 ```console
-helm upgrade --install k8soauth2-proxy-controller k8soauth2-proxy-controller/k8soauth2-proxy-controller
+helm upgrade --install oauth2-redirect-controller oauth2-redirect-controller/oauth2-redirect-controller
 ```
 
-This command deploys the k8soauth2-proxy-controller with the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
+This command deploys the oauth2-redirect-controller with the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
 ## Using the Chart
 
@@ -30,5 +30,5 @@ podAnnotations:
 See Customizing the Chart Before Installing. To see all configurable options with detailed comments, visit the chart's values.yaml, or run the configuration command:
 
 ```sh
-$ helm show values k8soauth2-proxy-controller/k8soauth2-proxy-controller
+$ helm show values oauth2-redirect-controller/oauth2-redirect-controller
 ```

@@ -3,4 +3,4 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller
-  name: k8soauth2-proxy-system
+  name: oauth2-redirect-system

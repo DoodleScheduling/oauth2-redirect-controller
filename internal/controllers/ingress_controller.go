@@ -26,11 +26,12 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -40,6 +41,11 @@ import (
 	v1beta1 "github.com/DoodleScheduling/oauth2-redirect-controller/api/v1beta1"
 	"github.com/DoodleScheduling/oauth2-redirect-controller/internal/proxy"
 )
+
+// +kubebuilder:rbac:groups=oauth2.infra.doodle.com,resources=oauth2proxies,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=oauth2.infra.doodle.com,resources=oauth2proxies/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups="",resources=services,verbs=get;watch;list
+// +kubebuilder:rbac:groups=events.k8s.io,resources=events,verbs=create;patch
 
 const (
 	serviceIndex = ".metadata.service"
@@ -51,7 +57,7 @@ type OAUTH2ProxyReconciler struct {
 	HttpProxy *proxy.HttpProxy
 	Log       logr.Logger
 	Scheme    *runtime.Scheme
-	Recorder  record.EventRecorder
+	Recorder  events.EventRecorder
 }
 
 type OAUTH2ProxyReconcilerOptions struct {
@@ -144,10 +150,11 @@ func (r *OAUTH2ProxyReconciler) reconcile(ctx context.Context, ph v1beta1.OAUTH2
 		Name:      ph.Spec.Backend.ServiceName,
 	}, &svc)
 
+	// do not return a reconcile error as we avoid a reconciliation requeue here
+	// this is not a recoverable error until the spec received a change
 	if err != nil {
-		msg := "Service not found"
-		r.Recorder.Event(&ph, "Normal", "info", msg)
-		return v1beta1.OAUTH2ProxyNotReady(ph, v1beta1.ServiceNotFoundReason, msg), ctrl.Result{}, nil
+		r.Recorder.Eventf(&ph, nil, corev1.EventTypeNormal, "Error", "Reconcile", "can not lookup service %s", err.Error())
+		return v1beta1.OAUTH2ProxyReady(ph, metav1.ConditionFalse, v1beta1.ServiceNotFoundReason, fmt.Sprintf("can not lookup service %s", err.Error())), ctrl.Result{}, nil
 	}
 
 	var port int32
@@ -157,13 +164,14 @@ func (r *OAUTH2ProxyReconciler) reconcile(ctx context.Context, ph v1beta1.OAUTH2
 		}
 	}
 
+	// do not return a reconcile error as we avoid a reconciliation requeue here
+	// this is not a recoverable error until the spec received a change
 	if port == 0 {
-		msg := "Port not found in service"
-		r.Recorder.Event(&ph, "Normal", "info", msg)
-		return v1beta1.OAUTH2ProxyNotReady(ph, v1beta1.ServicePortNotFoundReason, msg), ctrl.Result{}, nil
+		r.Recorder.Eventf(&ph, nil, corev1.EventTypeNormal, "Error", "Reconcile", "can not find port %s in service %s", ph.Spec.Backend.ServicePort, ph.Spec.Backend.ServiceName)
+		return v1beta1.OAUTH2ProxyReady(ph, metav1.ConditionFalse, v1beta1.ServicePortNotFoundReason, fmt.Sprintf("can not find port %s in service %s", ph.Spec.Backend.ServicePort, ph.Spec.Backend.ServiceName)), ctrl.Result{}, nil
 	}
 
-	_ = r.HttpProxy.RegisterOrUpdate(&proxy.OAUTH2Proxy{
+	r.HttpProxy.RegisterOrUpdate(&proxy.OAUTH2Proxy{
 		Host:        ph.Spec.Host,
 		Service:     svc.Spec.ClusterIP,
 		Paths:       ph.Spec.Paths,
@@ -175,9 +183,7 @@ func (r *OAUTH2ProxyReconciler) reconcile(ctx context.Context, ph v1beta1.OAUTH2
 		},
 	})
 
-	msg := "Service backend successfully registered"
-	r.Recorder.Event(&ph, "Normal", "info", msg)
-	return v1beta1.OAUTH2ProxyReady(ph, v1beta1.ServiceBackendReadyReason, msg), ctrl.Result{}, err
+	return v1beta1.OAUTH2ProxyReady(ph, metav1.ConditionTrue, "ReconciliationSuccessful", "Service successfully registered"), ctrl.Result{}, err
 }
 
 func (r *OAUTH2ProxyReconciler) patchStatus(ctx context.Context, ph *v1beta1.OAUTH2Proxy) error {

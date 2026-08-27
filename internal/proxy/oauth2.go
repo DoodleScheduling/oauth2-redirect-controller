@@ -64,7 +64,7 @@ func (h *HttpProxy) Unregister(obj client.ObjectKey) error {
 }
 
 // RegisterOrUpdate adds a target to the proxy or updates it if it already exists
-func (h *HttpProxy) RegisterOrUpdate(dst *OAUTH2Proxy) error {
+func (h *HttpProxy) RegisterOrUpdate(dst *OAUTH2Proxy) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 
@@ -77,14 +77,13 @@ func (h *HttpProxy) RegisterOrUpdate(dst *OAUTH2Proxy) error {
 			v.RedirectURI = dst.RedirectURI
 			v.Paths = dst.Paths
 
-			return nil
+			return
 		}
 	}
 
 	h.log.Info("register http backend", "host", dst.Host, "service", dst.Service, "port", dst.Port)
 	h.dst = append(h.dst, dst)
-
-	return nil
+	return
 }
 
 func (h *HttpProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {

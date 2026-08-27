@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "k8soauth2-proxy-controller.fullname" . }}
+  name: {{ include "oauth2-redirect-controller.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "k8soauth2-proxy-controller.name" . }}
+    app.kubernetes.io/name: {{ include "oauth2-redirect-controller.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    helm.sh/chart: {{ include "k8soauth2-proxy-controller.chart" . }}
+    helm.sh/chart: {{ include "oauth2-redirect-controller.chart" . }}
 {{- if .Values.service.labels }}
 {{ toYaml .Values.service.labels | indent 4 }}
 {{- end }}
@@ -23,6 +23,6 @@ spec:
       protocol: TCP
       name: metrics
   selector:
-    app.kubernetes.io/name: {{ include "k8soauth2-proxy-controller.name" . }}
+    app.kubernetes.io/name: {{ include "oauth2-redirect-controller.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
   type: {{ .Values.service.type }}

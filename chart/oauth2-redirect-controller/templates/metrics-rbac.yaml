@@ -2,12 +2,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "k8soauth2-proxy-controller.fullname" . }}-metrics-reader
+  name: {{ include "oauth2-redirect-controller.fullname" . }}-metrics-reader
   labels:
-    app.kubernetes.io/name: {{ include "k8soauth2-proxy-controller.name" . }}
+    app.kubernetes.io/name: {{ include "oauth2-redirect-controller.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    helm.sh/chart: {{ include "k8soauth2-proxy-controller.chart" . }}
+    helm.sh/chart: {{ include "oauth2-redirect-controller.chart" . }}
 rules:
 - nonResourceURLs:
   - "/metrics"
@@ -17,48 +17,48 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "k8soauth2-proxy-controller.fullname" . }}-metrics
+  name: {{ include "oauth2-redirect-controller.fullname" . }}-metrics
   labels:
-    app.kubernetes.io/name: {{ include "k8soauth2-proxy-controller.name" . }}
+    app.kubernetes.io/name: {{ include "oauth2-redirect-controller.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    helm.sh/chart: {{ include "k8soauth2-proxy-controller.chart" . }}
+    helm.sh/chart: {{ include "oauth2-redirect-controller.chart" . }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ include "k8soauth2-proxy-controller.fullname" . }}-metrics-reader
+  name: {{ include "oauth2-redirect-controller.fullname" . }}-metrics-reader
 subjects:
 - kind: ServiceAccount
-  name: {{ template "k8soauth2-proxy-controller.serviceAccountName" . }}
+  name: {{ template "oauth2-redirect-controller.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "k8soauth2-proxy-controller.fullname" . }}-proxy
+  name: {{ include "oauth2-redirect-controller.fullname" . }}-proxy
   labels:
-    app.kubernetes.io/name: {{ include "k8soauth2-proxy-controller.name" . }}
+    app.kubernetes.io/name: {{ include "oauth2-redirect-controller.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    helm.sh/chart: {{ include "k8soauth2-proxy-controller.chart" . }}
+    helm.sh/chart: {{ include "oauth2-redirect-controller.chart" . }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ include "k8soauth2-proxy-controller.fullname" . }}-proxy
+  name: {{ include "oauth2-redirect-controller.fullname" . }}-proxy
 subjects:
 - kind: ServiceAccount
-  name: {{ template "k8soauth2-proxy-controller.serviceAccountName" . }}
+  name: {{ template "oauth2-redirect-controller.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "k8soauth2-proxy-controller.fullname" . }}-proxy
+  name: {{ include "oauth2-redirect-controller.fullname" . }}-proxy
   labels:
-    app.kubernetes.io/name: {{ include "k8soauth2-proxy-controller.name" . }}
+    app.kubernetes.io/name: {{ include "oauth2-redirect-controller.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    helm.sh/chart: {{ include "k8soauth2-proxy-controller.chart" . }}
+    helm.sh/chart: {{ include "oauth2-redirect-controller.chart" . }}
 rules:
 - apiGroups:
   - authentication.k8s.io
