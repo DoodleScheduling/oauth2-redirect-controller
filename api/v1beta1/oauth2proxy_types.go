@@ -49,7 +49,7 @@ type OAUTH2ProxyStatus struct {
 }
 
 const (
-	ReadyCondition            = "Ready"
+	ConditionReady            = "Ready"
 	ServicePortNotFoundReason = "ServicePortNotFound"
 	ServiceNotFoundReason     = "ServiceNotFound"
 	ServiceBackendReadyReason = "ServiceBackendReady"
@@ -75,15 +75,9 @@ func setResourceCondition(resource conditionalResource, condition string, status
 	apimeta.SetStatusCondition(conditions, newCondition)
 }
 
-// OAUTH2ProxyNotReady
-func OAUTH2ProxyNotReady(clone OAUTH2Proxy, reason, message string) OAUTH2Proxy {
-	setResourceCondition(&clone, ReadyCondition, metav1.ConditionFalse, reason, message)
-	return clone
-}
-
 // OAUTH2ProxyReady
-func OAUTH2ProxyReady(clone OAUTH2Proxy, reason, message string) OAUTH2Proxy {
-	setResourceCondition(&clone, ReadyCondition, metav1.ConditionTrue, reason, message)
+func OAUTH2ProxyReady(clone OAUTH2Proxy, status metav1.ConditionStatus, reason, message string) OAUTH2Proxy {
+	setResourceCondition(&clone, ConditionReady, status, reason, message)
 	return clone
 }
 
@@ -118,5 +112,5 @@ type OAUTH2ProxyList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&OAUTH2Proxy{}, &OAUTH2ProxyList{})
+	objectTypes = append(objectTypes, &OAUTH2Proxy{}, &OAUTH2ProxyList{})
 }

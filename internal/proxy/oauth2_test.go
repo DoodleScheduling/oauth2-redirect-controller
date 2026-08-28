@@ -32,8 +32,7 @@ func TestRegisterOrUpdateBackend(t *testing.T) {
 		},
 	}
 
-	err := proxy.RegisterOrUpdate(&path)
-	g.Expect(err).NotTo(HaveOccurred(), "could not update backend")
+	proxy.RegisterOrUpdate(&path)
 	g.Expect(1).To(Equal(len(proxy.dst)))
 	g.Expect(path).To(Equal(*proxy.dst[0]))
 
@@ -49,8 +48,7 @@ func TestRegisterOrUpdateBackend(t *testing.T) {
 		},
 	}
 
-	err = proxy.RegisterOrUpdate(&path)
-	g.Expect(err).NotTo(HaveOccurred(), "could not update backend")
+	proxy.RegisterOrUpdate(&path)
 	g.Expect(1).To(Equal(len(proxy.dst)))
 	g.Expect(path).To(Equal(*proxy.dst[0]))
 }
@@ -74,7 +72,7 @@ func TestRemoveBackend(t *testing.T) {
 			Namespace: "bar",
 		},
 	}
-	_ = proxy.RegisterOrUpdate(&path)
+	proxy.RegisterOrUpdate(&path)
 	err = proxy.Unregister(path.Object)
 	g.Expect(err).To(Not(HaveOccurred()))
 	g.Expect(0).To(Equal(len(proxy.dst)))
@@ -96,8 +94,7 @@ func TestRouteRecoverOriginRedirectURI(t *testing.T) {
 		},
 	}
 
-	err := proxy.RegisterOrUpdate(&path)
-	g.Expect(err).NotTo(HaveOccurred(), "could not update backend")
+	proxy.RegisterOrUpdate(&path)
 
 	tests := []struct {
 		name           string
@@ -380,7 +377,7 @@ func TestChangeRedirectURI(t *testing.T) {
 			})
 
 			p := test.path()
-			_ = proxy.RegisterOrUpdate(&p)
+			proxy.RegisterOrUpdate(&p)
 
 			w := httptest.NewRecorder()
 			proxy.ServeHTTP(w, test.request())
