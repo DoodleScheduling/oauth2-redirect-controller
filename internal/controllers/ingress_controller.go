@@ -44,6 +44,7 @@ import (
 // +kubebuilder:rbac:groups=oauth2.infra.doodle.com,resources=oauth2proxies,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=oauth2.infra.doodle.com,resources=oauth2proxies/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=services,verbs=get;watch;list
+// +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups=events.k8s.io,resources=events,verbs=create;patch
 
 const (
@@ -152,7 +153,7 @@ func (r *OAUTH2ProxyReconciler) reconcile(ctx context.Context, ph v1beta1.OAUTH2
 	// do not return a reconcile error as we avoid a reconciliation requeue here
 	// this is not a recoverable error until the spec received a change
 	if err != nil {
-		r.Recorder.Eventf(&ph, nil, corev1.EventTypeNormal, "Error", "Reconcile", "can not lookup service %s", err.Error())
+		r.Recorder.Eventf(&ph, nil, corev1.EventTypeWarning, "ServiceNotFound", "LookupService", "can not lookup service %s", err.Error())
 		return v1beta1.OAUTH2ProxyReady(ph, metav1.ConditionFalse, v1beta1.ServiceNotFoundReason, fmt.Sprintf("can not lookup service %s", err.Error())), ctrl.Result{}, nil
 	}
 
@@ -166,7 +167,7 @@ func (r *OAUTH2ProxyReconciler) reconcile(ctx context.Context, ph v1beta1.OAUTH2
 	// do not return a reconcile error as we avoid a reconciliation requeue here
 	// this is not a recoverable error until the spec received a change
 	if port == 0 {
-		r.Recorder.Eventf(&ph, nil, corev1.EventTypeNormal, "Error", "Reconcile", "can not find port %s in service %s", ph.Spec.Backend.ServicePort, ph.Spec.Backend.ServiceName)
+		r.Recorder.Eventf(&ph, nil, corev1.EventTypeWarning, "PortNotFound", "LookupPort", "can not find port %s in service %s", ph.Spec.Backend.ServicePort, ph.Spec.Backend.ServiceName)
 		return v1beta1.OAUTH2ProxyReady(ph, metav1.ConditionFalse, v1beta1.ServicePortNotFoundReason, fmt.Sprintf("can not find port %s in service %s", ph.Spec.Backend.ServicePort, ph.Spec.Backend.ServiceName)), ctrl.Result{}, nil
 	}
 

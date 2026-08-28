@@ -12,6 +12,13 @@ metadata:
     {{- toYaml .Values.annotations | nindent 4 }}
 rules:
 - apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
   - events.k8s.io
   resources:
   - events
