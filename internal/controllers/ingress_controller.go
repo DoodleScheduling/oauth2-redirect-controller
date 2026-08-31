@@ -136,7 +136,7 @@ func (r *OAUTH2ProxyReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// Update status after reconciliation.
 	if err = r.patchStatus(ctx, &ph); err != nil {
 		logger.Error(err, "unable to update status after reconciliation")
-		return ctrl.Result{Requeue: true}, err
+		return ctrl.Result{}, err
 	}
 
 	return result, reconcileErr
